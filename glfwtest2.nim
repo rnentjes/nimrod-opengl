@@ -189,7 +189,7 @@ proc Initialize() =
         glfwTerminate()
  
  
-    glfwSwapInterval(0)
+    glfwSwapInterval(1)
  
     opengl.loadExtensions()
     #openglInit()
@@ -247,6 +247,8 @@ proc Render() =
     glUseProgram(0)
     
     glfwSwapBuffers()
+    
+    #sleep(10)
 
  
 ## --------------------------------------------------------------------------------
