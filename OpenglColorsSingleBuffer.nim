@@ -15,8 +15,8 @@ var
     frameRate: int = 0
     frameDelta: float = 0.0
    
-    windowW: GLint = 640
-    windowH: GLint = 480
+    windowW: GLint = 1024
+    windowH: GLint = 768
  
     vshaderID: int
     fshaderID: int
@@ -27,17 +27,28 @@ var
     
     startTime: cdouble
 
-    angleLoc: int32
-    angle: float32
+    rotationLoc: int32
+    rx, ry, rz: float32
  
     scaleLoc: int32
     scale: float32
  
-    pMatrixUniLoc: int
-    mvMatrixUniLoc: int
- 
-    mvMatrix: array[0..15, float32] = [1.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 1.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 1.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 1.0'f32]
-    pMatrix: array[0..15, float32]  = [1.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 1.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 1.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 1.0'f32]
+    mvpMatrixUniLoc: int
+    positionLoc: int
+    
+    x: float32
+    y: float32
+    z: float32
+  
+    mvMatrix: array[0..15, float32] = [1.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 
+                                       0.0'f32, 1.0'f32, 0.0'f32, 0.0'f32, 
+                                       0.0'f32, 0.0'f32, 1.0'f32, 0.0'f32, 
+                                       0.0'f32, 0.0'f32, 0.0'f32, 1.0'f32]
+                                       
+    pMatrix: array[0..15, float32]  = [1.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 
+                                       0.0'f32, 1.0'f32, 0.0'f32, 0.0'f32, 
+                                       0.0'f32, 0.0'f32, 1.0'f32, 0.0'f32, 
+                                       0.0'f32, 0.0'f32, 0.0'f32, 1.0'f32]
  
     vbo: GLuint
     colors_vbo: GLuint
@@ -49,38 +60,63 @@ type
 
 ## -------------------------------------------------------------------------------
  
-proc GenOrthoMatrix(width: int, height: int, matrix: var array[0..15, float32]) =
-   
-    matrix[0] = 2.0 / float(width)
+ 
+proc DegToRad(deg: float32) :float32 =
+    result = deg / 180 * PI
+
+proc OpenGlOrthographic(l: float32, r: float32, b: float32, t: float32, n: float32, f: float32, matrix: var array[0..15, float32]) =
+       
+    matrix[0] = 2.0 / (r - l)
     matrix[1] = 0.0
     matrix[2] = 0.0
     matrix[3] = 0.0
    
     matrix[4] = 0.0
-    matrix[5] = 2.0 / float(-height)
+    matrix[5] = 2.0 / (t - b)
     matrix[6] = 0.0
     matrix[7] = 0.0
    
     matrix[8] = 0.0
     matrix[9] = 0.0
-    matrix[10] = -1.0
+    matrix[10] = 2.0 / (n - f)
     matrix[11] = 0.0
    
-    matrix[12] = -1.0
-    matrix[13] = 1.0
-    matrix[14] = 0.0
-    matrix[15] = 1.0
-    
- 
- 
+    matrix[12] = (r + l) / (r - l)
+    matrix[13] = (t + b) / (t - b)
+    matrix[14] = (f + n) / (f - n)
+    matrix[15] = 0.0
+        
+proc OpenGlPerspective(angle: float32, imageAspectRatio: float32, n: float32, f: float32, matrix: var array[0..15, float32]) =
+    var 
+        r = DegToRad(angle)
+        f = 1.0 / tan(r / 2.0)
+        
+    matrix[0] = f / imageAspectRatio
+    matrix[1] = 0.0
+    matrix[2] = 0.0
+    matrix[3] = 0.0
+   
+    matrix[4] = 0.0
+    matrix[5] = f
+    matrix[6] = 0.0
+    matrix[7] = 0.0
+   
+    matrix[8] = 0.0
+    matrix[9] = 0.0
+    matrix[10] = -(f + n) / (f - n)
+    matrix[11] = -1.0
+   
+    matrix[12] = 0.0
+    matrix[13] = 0.0
+    matrix[14] = -(2.0 * f * n) / (f - n)
+    matrix[15] = 0.0
+
 proc Resize(width: GLint, height: int32) =
    
     glViewport(0, 0, width, height)
  
-    #GenOrthoMatrix(width, height, pMatrix)
- 
- 
- 
+    #OpenGlOrthographic(-10.0, 10.0, -10.0, 10.0, -1.0, -50.0, pMatrix)
+    OpenGlPerspective(60.0, float32(width) / float32(height), -1.0, -50.0, pMatrix)
  
 ## -------------------------------------------------------------------------------
  
@@ -169,8 +205,10 @@ proc InitializeShaders() =
  
     glEnableVertexAttribArray(colorsPosAttrLoc)
 
-    angleLoc = glGetUniformLocation(shaderProg, "u_angle")
+    rotationLoc = glGetUniformLocation(shaderProg, "u_rotation")
     scaleLoc = glGetUniformLocation(shaderProg, "u_scale")
+    mvpMatrixUniLoc = glGetUniformLocation(shaderProg, "u_mvp")
+    positionLoc = glGetUniformLocation(shaderProg, "u_position")
 
 ## -----------------------------------------------------------------------------
  
@@ -178,8 +216,22 @@ proc InitializeBuffers() =
    
     #var vertices = [0.0'f32, 1.0'f32, 0.0'f32, -1.0'f32, -1.0'f32, 0.0'f32, 1.0'f32, -1.0'f32, 0.0'f32]
     #var vertices = [0.0, 0.0, 0.0, -1.0, -1.0, 0.0, 0.0, -1.0, 0.0]
-    var vertices = [0.0'f32, 0.5'f32, 0.0'f32, -0.5'f32, -0.5'f32, 0.0'f32, 0.5'f32, -0.5'f32, 0.0'f32, 
-                    1.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 1.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 1.0'f32 ]
+    var vertices = [0.0'f32,  0.0'f32,  0.0'f32, 
+                    1.0'f32,  0.0'f32,  0.0'f32, 
+                    1.0'f32,  1.0'f32,  0.0'f32,
+                    
+                    1.0'f32,  1.0'f32,  0.0'f32,
+                    1.0'f32,  0.0'f32,  0.0'f32, 
+                    1.0'f32,  0.0'f32,  1.0'f32, 
+    
+                    1.0'f32, 0.0'f32, 0.0'f32, 
+                    0.0'f32, 1.0'f32, 0.0'f32, 
+                    0.0'f32, 0.0'f32, 1.0'f32,
+                    
+                    0.0'f32, 0.0'f32, 1.0'f32,
+                    0.0'f32, 1.0'f32, 0.0'f32, 
+                    1.0'f32, 0.0'f32, 0.0'f32, 
+                   ]
  
     glGenBuffers(1, addr(vbo))
  
@@ -231,9 +283,17 @@ proc Update() =
         
         lastFPSTime = currentTime
         frameCount = 0
-        
-    angle = sin(currentTime - startTime) * 4
-    scale = 1.5 + sin((currentTime - startTime) * 2)
+    
+    var delta = currentTime - startTime    
+    
+    scale = 1 #1.5 + sin((currentTime - startTime) * 2)
+    x = 0 #sin(delta * 5) * 5
+    y = 0 #sin(delta * 7) * 5
+    z = -5 #+ sin(delta * 3) * 15
+    
+    rx = sin(delta)
+    ry = sin(delta * 1.1)
+    rz = sin(delta * 1.2)
 
     frameCount += 1   
  
@@ -249,12 +309,14 @@ proc Render() =
     
     glVertexAttribPointer(vertexPosAttrLoc, 3'i32, cGL_FLOAT, false, 0'i32, nil)
  
-    glVertexAttribPointer(colorsPosAttrLoc, 3'i32, cGL_FLOAT, false, 0'i32, cast[PGLVoid](9*sizeof(GL_FLOAT)))
+    glVertexAttribPointer(colorsPosAttrLoc, 3'i32, cGL_FLOAT, false, 0'i32, cast[PGLVoid](18*sizeof(GL_FLOAT)))
     
-    glUniform1f(angleLoc, angle)
+    glUniform3f(rotationLoc, rx, ry, rz)
     glUniform1f(scaleLoc, scale)
+    glUniformMatrix4fv(int32(mvpMatrixUniLoc), 16'i32, false, addr(pMatrix[0]))
+    glUniform3f(int32(positionLoc), x, y, z)
  
-    glDrawArrays(GL_TRIANGLES, 0, 3)
+    glDrawArrays(GL_TRIANGLES, 0, 6)
  
     glUseProgram(0)
     
@@ -270,6 +332,8 @@ proc Run() =
         Update()
  
         Render()
+        
+        GC_step(1000)
  
         running = glfwGetKey(GLFW_KEY_ESC) == GLFW_RELEASE and
                   glfwGetWindowParam(GLFW_OPENED) == GL_TRUE
@@ -277,7 +341,7 @@ proc Run() =
  
 ## ==============================================================================
  
- 
+GC_disable()
  
 Initialize()
  

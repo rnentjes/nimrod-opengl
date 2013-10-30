@@ -15,5 +15,5 @@ void main() {
 
     float alpha = 1 - smoothstep(0, 1, distance);
 
-    gl_FragColor = vec4(v_color, alpha);
+    gl_FragColor = vec4(v_color, 1);
 }
