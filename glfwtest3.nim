@@ -22,6 +22,7 @@ var
     shaderProg: int
  
     vertexPosAttrLoc: GLuint
+    colorsPosAttrLoc: GLuint
  
     pMatrixUniLoc: int
     mvMatrixUniLoc: int
@@ -30,6 +31,7 @@ var
     pMatrix: array[0..15, float32]  = [1.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 1.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 1.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 1.0'f32]
  
     vbo: GLuint
+    colors_vbo: GLuint
  
 type
     ShaderType = enum
@@ -153,6 +155,10 @@ proc InitializeShaders() =
  
     glEnableVertexAttribArray(vertexPosAttrLoc)
  
+    colorsPosAttrLoc = cast[GLUint](glGetAttribLocation(shaderProg, "a_color"))
+ 
+    glEnableVertexAttribArray(colorsPosAttrLoc)
+
     #pMatrixUniLoc = glGetUniformLocation(shaderProg, "uPMatrix")
     #mvMatrixUniLoc = glGetUniformLocation(shaderProg, "uMVMatrix")
  
@@ -164,6 +170,7 @@ proc InitializeBuffers() =
     #var vertices = [0.0'f32, 1.0'f32, 0.0'f32, -1.0'f32, -1.0'f32, 0.0'f32, 1.0'f32, -1.0'f32, 0.0'f32]
     #var vertices = [0.0, 0.0, 0.0, -1.0, -1.0, 0.0, 0.0, -1.0, 0.0]
     var vertices = [0.0'f32, 0.5'f32, 0.0'f32, -0.5'f32, -0.5'f32, 0.0'f32, 0.5'f32, -0.5'f32, 0.0'f32]
+    var colors = [1.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 1.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 1.0'f32 ]
  
     glGenBuffers(1, addr(vbo))
  
@@ -171,6 +178,11 @@ proc InitializeBuffers() =
  
     glBufferData(GL_ARRAY_BUFFER, sizeof(GL_FLOAT) * vertices.len, addr(vertices[0]), GL_STATIC_DRAW)
 
+    glGenBuffers(1, addr(colors_vbo))
+ 
+    glBindBuffer(GL_ARRAY_BUFFER, colors_vbo)
+ 
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GL_FLOAT) * colors.len, addr(colors[0]), GL_STATIC_DRAW)
  
 ## -------------------------------------------------------------------------------
  
@@ -241,6 +253,12 @@ proc Render() =
  
     glVertexAttribPointer(vertexPosAttrLoc, 3'i32, cGL_FLOAT, false, 0'i32, nil)
  
+    glBindBuffer(GL_ARRAY_BUFFER, colors_vbo)
+    
+    glEnableVertexAttribArray(1)
+ 
+    glVertexAttribPointer(colorsPosAttrLoc, 3'i32, cGL_FLOAT, false, 0'i32, nil)
+
     SetMatrixUniforms()
  
     glDrawArrays(GL_TRIANGLES, 0, 3)

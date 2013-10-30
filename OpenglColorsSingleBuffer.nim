@@ -2,6 +2,7 @@ import glfw
 import opengl
 import strutils
 import typeinfo
+import math
  
 ## -------------------------------------------------------------------------------
  
@@ -22,6 +23,15 @@ var
     shaderProg: int
  
     vertexPosAttrLoc: GLuint
+    colorsPosAttrLoc: GLuint
+    
+    startTime: cdouble
+
+    angleLoc: int32
+    angle: float32
+ 
+    scaleLoc: int32
+    scale: float32
  
     pMatrixUniLoc: int
     mvMatrixUniLoc: int
@@ -30,6 +40,7 @@ var
     pMatrix: array[0..15, float32]  = [1.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 1.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 1.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 1.0'f32]
  
     vbo: GLuint
+    colors_vbo: GLuint
  
 type
     ShaderType = enum
@@ -116,6 +127,7 @@ proc InitializeGL() =
     glClearColor(0.2,0.0,0.2,1.0)
     glClearDepth(1.0)
     glEnable(GL_BLEND)
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDisable(GL_DEPTH_TEST)
     
 proc PrintOpenGLError() =
@@ -153,36 +165,32 @@ proc InitializeShaders() =
  
     glEnableVertexAttribArray(vertexPosAttrLoc)
  
-    #pMatrixUniLoc = glGetUniformLocation(shaderProg, "uPMatrix")
-    #mvMatrixUniLoc = glGetUniformLocation(shaderProg, "uMVMatrix")
+    colorsPosAttrLoc = cast[GLUint](glGetAttribLocation(shaderProg, "a_color"))
  
- 
+    glEnableVertexAttribArray(colorsPosAttrLoc)
+
+    angleLoc = glGetUniformLocation(shaderProg, "u_angle")
+    scaleLoc = glGetUniformLocation(shaderProg, "u_scale")
+
 ## -----------------------------------------------------------------------------
  
 proc InitializeBuffers() =
    
     #var vertices = [0.0'f32, 1.0'f32, 0.0'f32, -1.0'f32, -1.0'f32, 0.0'f32, 1.0'f32, -1.0'f32, 0.0'f32]
     #var vertices = [0.0, 0.0, 0.0, -1.0, -1.0, 0.0, 0.0, -1.0, 0.0]
-    var vertices = [0.0'f32, 0.5'f32, 0.0'f32, -0.5'f32, -0.5'f32, 0.0'f32, 0.5'f32, -0.5'f32, 0.0'f32]
+    var vertices = [0.0'f32, 0.5'f32, 0.0'f32, -0.5'f32, -0.5'f32, 0.0'f32, 0.5'f32, -0.5'f32, 0.0'f32, 
+                    1.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 1.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 1.0'f32 ]
  
     glGenBuffers(1, addr(vbo))
  
     glBindBuffer(GL_ARRAY_BUFFER, vbo)
  
     glBufferData(GL_ARRAY_BUFFER, sizeof(GL_FLOAT) * vertices.len, addr(vertices[0]), GL_STATIC_DRAW)
-
- 
-## -------------------------------------------------------------------------------
- 
-proc SetMatrixUniforms() =
-    #glUniformMatrix4fv(pMatrixUniLoc, 16, false, addr(pMatrix[0]))
-    #glUniformMatrix4fv(mvMatrixUniLoc, 16, false, addr(mvMatrix[0]))
- 
- 
  
 ## -------------------------------------------------------------------------------
  
 proc Initialize() =
+    startTime = glfwGetTime()
    
     if glfwInit() == 0:
         write(stdout, "Could not initialize GLFW! \n")
@@ -196,7 +204,6 @@ proc Initialize() =
     glfwSwapInterval(0)
  
     opengl.loadExtensions()
-    #openglInit()
  
     InitializeGL()
  
@@ -224,6 +231,9 @@ proc Update() =
         
         lastFPSTime = currentTime
         frameCount = 0
+        
+    angle = sin(currentTime - startTime) * 4
+    scale = 1.5 + sin((currentTime - startTime) * 2)
 
     frameCount += 1   
  
@@ -237,30 +247,25 @@ proc Render() =
  
     glBindBuffer(GL_ARRAY_BUFFER, vbo)
     
-    glEnableVertexAttribArray(0)
- 
     glVertexAttribPointer(vertexPosAttrLoc, 3'i32, cGL_FLOAT, false, 0'i32, nil)
  
-    SetMatrixUniforms()
+    glVertexAttribPointer(colorsPosAttrLoc, 3'i32, cGL_FLOAT, false, 0'i32, cast[PGLVoid](9*sizeof(GL_FLOAT)))
+    
+    glUniform1f(angleLoc, angle)
+    glUniform1f(scaleLoc, scale)
  
     glDrawArrays(GL_TRIANGLES, 0, 3)
  
     glUseProgram(0)
     
     glfwSwapBuffers()
-    
-    #sleep(10)
 
  
 ## --------------------------------------------------------------------------------
  
 proc Run() =
 
-    #discard GC_disable   
-    
     while running:
-    
-        #GC_step(500, true)
    
         Update()
  

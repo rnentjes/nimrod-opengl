@@ -4,6 +4,16 @@
 precision mediump float;
 #endif
 
+varying vec3 v_color;
+varying vec2 v_position;
+
 void main() {
-    gl_FragColor = vec4(1.0, 0.5, 0.0, 0.5);
+    float x = gl_FragCoord.x;
+    float y = gl_FragCoord.y;
+
+    float distance = v_position.x * v_position.x + v_position.y * v_position.y;
+
+    float alpha = 1 - smoothstep(0, 1, distance);
+
+    gl_FragColor = vec4(v_color, alpha);
 }
