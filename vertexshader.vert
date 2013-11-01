@@ -9,7 +9,6 @@ attribute vec4 a_position;
 attribute vec3 a_color;
 
 varying vec3 v_color;
-varying vec2 v_position;
 
 mat4 translate(float x, float y, float z) {
     return mat4(
@@ -55,13 +54,20 @@ mat4 rotateZ(float angle) {
         vec4(0.0,          0.0,         0.0,  1.0)
     );
 }
+
 void main() {
     mat4 scale = scale(u_scale);
-    mat4 rotate = rotateX(u_rotation.x);  // * rotateY(u_rotation.y) * rotateZ(u_rotation.z);
+    mat4 rotate = rotateX(u_rotation.x) * rotateY(u_rotation.y) * rotateZ(u_rotation.z);
     mat4 translate = translate(u_position.x, u_position.y, u_position.z);
-    
+
+    //gl_Position = translate * a_position;
+    //gl_Position = u_mvp * translate * a_position;
+    //gl_Position = translate * scale * rotate * a_position;
     gl_Position = u_mvp * translate * scale * rotate * a_position;
+    //gl_Position = translate * scale * rotate * a_position;
+    mat4 test = mat4(1);
     
+    gl_Position = u_mvp * translate * a_position;
+
     v_color = a_color;
-    v_position = a_position.xy;
 }

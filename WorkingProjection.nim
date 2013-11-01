@@ -253,7 +253,7 @@ proc Initialize() =
         glfwTerminate()
  
  
-    glfwSwapInterval(0)
+    glfwSwapInterval(1)
  
     opengl.loadExtensions()
  
@@ -289,7 +289,7 @@ proc Update() =
     scale = 1 #1.5 + sin((currentTime - startTime) * 2)
     x = 0 #sin(delta * 5) * 5
     y = 0 #sin(delta * 7) * 5
-    z = -25 + sin(delta * 3) * 20
+    z = sin(delta * 3) * 20
     
     rx = sin(delta)
     ry = sin(delta * 1.1)

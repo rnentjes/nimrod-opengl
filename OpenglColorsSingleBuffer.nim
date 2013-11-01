@@ -15,8 +15,8 @@ var
     frameRate: int = 0
     frameDelta: float = 0.0
    
-    windowW: GLint = 1024
-    windowH: GLint = 768
+    windowW: GLint = 800
+    windowH: GLint = 400
  
     vshaderID: int
     fshaderID: int
@@ -62,7 +62,7 @@ type
  
  
 proc DegToRad(deg: float32) :float32 =
-    result = deg / 180 * PI
+    result = deg / (PI / 180.0)
 
 proc OpenGlOrthographic(l: float32, r: float32, b: float32, t: float32, n: float32, f: float32, matrix: var array[0..15, float32]) =
        
@@ -78,13 +78,13 @@ proc OpenGlOrthographic(l: float32, r: float32, b: float32, t: float32, n: float
    
     matrix[8] = 0.0
     matrix[9] = 0.0
-    matrix[10] = 2.0 / (n - f)
+    matrix[10] = -2.0 / (f - n)
     matrix[11] = 0.0
    
     matrix[12] = (r + l) / (r - l)
     matrix[13] = (t + b) / (t - b)
     matrix[14] = (f + n) / (f - n)
-    matrix[15] = 0.0
+    matrix[15] = 1.0
         
 proc OpenGlPerspective(angle: float32, imageAspectRatio: float32, n: float32, f: float32, matrix: var array[0..15, float32]) =
     var 
@@ -117,6 +117,9 @@ proc Resize(width: GLint, height: int32) =
  
     #OpenGlOrthographic(-10.0, 10.0, -10.0, 10.0, -1.0, -50.0, pMatrix)
     OpenGlPerspective(60.0, float32(width) / float32(height), -1.0, -50.0, pMatrix)
+    
+    for i in countup(0, 15):
+      echo ("matrix[", i, "]->", pMatrix[i])
  
 ## -------------------------------------------------------------------------------
  
@@ -128,7 +131,9 @@ proc LoadShader(shaderType: ShaderType, file: string ): int =
     else:
         result = glCreateShader(GL_FRAGMENT_SHADER)
  
- 
+    if result == -1:
+        quit("Error compiling shaders! Can't get shader handle!")
+        
     var shaderSrc = readFile(file)
  
     var shader = result
@@ -155,16 +160,17 @@ proc LoadShader(shaderType: ShaderType, file: string ): int =
         glGetShaderInfoLog(shader, logLength, logLength, log)
         echo ("Error compiling the shader: ", file, " error: ", log)
  
-        dealloc(log) 
+        dealloc(log)
+
 ## ---------------------------------------------------------------------
  
 proc InitializeGL() =
-   
+
     glClearColor(0.2,0.0,0.2,1.0)
-    glClearDepth(1.0)
-    glEnable(GL_BLEND)
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDisable(GL_DEPTH_TEST)
+    #glClearDepth(50.0)
+    #glEnable(GL_BLEND)
+    #glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    #lDisable(GL_DEPTH_TEST)
     
 proc PrintOpenGLError() =
 
@@ -179,7 +185,7 @@ proc InitializeShaders() =
     fshaderID = LoadShader(ShaderType.FragmentShader, "fragshader.frag")
  
     if vshaderID == -1 or fshaderID == -1:
-        quit("Error compiling shaders!")
+        quit("Error compiling shaders! Can't get shader handles!")
  
     shaderProg = glCreateProgram()
  
@@ -247,13 +253,20 @@ proc Initialize() =
     if glfwInit() == 0:
         write(stdout, "Could not initialize GLFW! \n")
  
-    glfwOpenWindowHint(GLFW_WINDOW_NO_RESIZE, GL_TRUE)
+    glfwOpenWindowHint(GLFW_WINDOW_NO_RESIZE, GL_FALSE)
+    glfwOpenWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API)
+    glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 2)
+    glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 0)
+    glfwOpenWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE)
+    
+    #glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE)
  
+    # GLFW_WINDOW or GLFW_FULLSCREEN
     if glfwOpenWindow(cint(windowW), cint(windowH), 0, 0, 0, 0, 0, 0, GLFW_WINDOW) == 0:
         glfwTerminate()
  
  
-    glfwSwapInterval(0)
+    glfwSwapInterval(1)
  
     opengl.loadExtensions()
  
@@ -284,18 +297,18 @@ proc Update() =
         lastFPSTime = currentTime
         frameCount = 0
     
-    var delta = currentTime - startTime    
+    var delta = currentTime - startTime
     
-    scale = 1 #1.5 + sin((currentTime - startTime) * 2)
+    scale = 1 #0.5 + sin((currentTime - startTime) * 2)
     x = 0 #sin(delta * 5) * 5
     y = 0 #sin(delta * 7) * 5
-    z = -5 #+ sin(delta * 3) * 15
+    z = -30 + sin(delta * 3) * 20
     
     rx = sin(delta)
     ry = sin(delta * 1.1)
     rz = sin(delta * 1.2)
 
-    frameCount += 1   
+    frameCount += 1
  
 ## --------------------------------------------------------------------------------
  
@@ -305,24 +318,23 @@ proc Render() =
     
     glUseProgram(shaderProg)
  
+    glUniform3f(rotationLoc, rx, ry, rz)
+    glUniform1f(scaleLoc, scale)
+    glUniformMatrix4fv(int32(mvpMatrixUniLoc), 1, false, addr(pMatrix[0]))
+    glUniform3f(int32(positionLoc), 0, 0, z)
+ 
     glBindBuffer(GL_ARRAY_BUFFER, vbo)
     
     glVertexAttribPointer(vertexPosAttrLoc, 3'i32, cGL_FLOAT, false, 0'i32, nil)
  
     glVertexAttribPointer(colorsPosAttrLoc, 3'i32, cGL_FLOAT, false, 0'i32, cast[PGLVoid](18*sizeof(GL_FLOAT)))
     
-    glUniform3f(rotationLoc, rx, ry, rz)
-    glUniform1f(scaleLoc, scale)
-    glUniformMatrix4fv(int32(mvpMatrixUniLoc), 16'i32, false, addr(pMatrix[0]))
-    glUniform3f(int32(positionLoc), x, y, z)
- 
     glDrawArrays(GL_TRIANGLES, 0, 6)
  
     glUseProgram(0)
     
     glfwSwapBuffers()
 
- 
 ## --------------------------------------------------------------------------------
  
 proc Run() =
