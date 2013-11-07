@@ -1,0 +1,3 @@
+nimrod c -d:useRealtimeGC LotsOfTriangles.nim
+
+./LotsOfTriangles

@@ -98,7 +98,7 @@ proc Initialize() =
         write(stdout, "Could not initialize GLFW! \n")
  
     glfwOpenWindowHint(GLFW_WINDOW_NO_RESIZE, GL_FALSE)
-    glfwOpenWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API)
+    #glfwOpenWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API)
     glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 2)
     glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 0)
     glfwOpenWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE)
@@ -109,7 +109,7 @@ proc Initialize() =
     if glfwOpenWindow(cint(windowW), cint(windowH), 0, 0, 0, 0, 0, 0, GLFW_WINDOW) == 0:
         glfwTerminate()
  
-    glfwSetWindowSizeCallback(Resize)
+    #glfwSetWindowSizeCallback(Resize)
  
     glfwSwapInterval(1)
  
