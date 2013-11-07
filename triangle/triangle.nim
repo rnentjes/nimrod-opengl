@@ -120,7 +120,7 @@ proc InitializeShaders() =
  
 proc InitializeBuffers() =
    
-    var vertices = [ 0.0'f32,   0.5'f32,  0.0'f32, 
+    var vertices = [ 0.0'f32,   0.5'f32,  0.0'f32,
                     -0.5'f32,  -0.5'f32,  0.0'f32, 
                      0.5'f32,  -0.5'f32,  0.0'f32,
                    ]

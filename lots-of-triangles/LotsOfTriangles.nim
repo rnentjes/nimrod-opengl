@@ -3,8 +3,8 @@ import opengl
 import strutils
 import typeinfo
 
-import perspective
-import shaderProgram
+import mymodule/perspective
+import mymodule/shaderProgram
  
 ## -------------------------------------------------------------------------------
  
@@ -120,7 +120,7 @@ proc Initialize() =
     lastTime = glfwGetTime()
     lastFPSTime = lastTime
 
-    shader = createShaderProgram("shader")
+    shader = createShaderProgram("shaders/shader")
     
     vertexPosAttrLoc = shader.GetAttribLocation("a_position")
     colorPosAttrLoc = shader.GetAttribLocation("a_color")

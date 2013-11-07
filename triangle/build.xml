@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <!-- build script -->
-<project name="nimrod-triangles" default="run" basedir=".">
+<project name="nimrod-triangle" default="run" basedir=".">
 
-    <property name="main.name" value="LotsOfTriangles" />
+    <property name="main.name" value="triangle" />
     <property name="nimcache" value="nimcache" />
 
 
@@ -17,14 +17,13 @@
 
     <target name="compile">
         <echo>${basedir}</echo>
-        <exec executable="nimrod"  failonerror="true">
+        <exec executable="nimrod">
             <arg line="c -d:useRealtimeGC ${main.name}.nim"/>
         </exec>
     </target>
 
     <target name="run" depends="compile">
-        <exec executable="./${main.name}" />
+        <exec output="out.log" executable="./${main.name}" />
     </target>
-
 
 </project>
