@@ -5,7 +5,8 @@ import typeinfo
 
 import mymodule/perspective
 import mymodule/shaderProgram
- 
+import mymodule/mesh
+
 ## -------------------------------------------------------------------------------
  
 var
@@ -42,6 +43,7 @@ var
     resized: bool = true
     
     shader: PShaderProgram
+    mesh: PMesh
   
  
 type
@@ -89,6 +91,8 @@ proc InitializeBuffers() =
  
     glBufferData(GL_ARRAY_BUFFER, sizeof(GL_FLOAT) * colors.len, addr(colors[0]), GL_STATIC_DRAW)
 
+    mesh = createMesh(9)
+
 ## -------------------------------------------------------------------------------
  
 proc Initialize() =
@@ -109,7 +113,7 @@ proc Initialize() =
     if glfwOpenWindow(cint(windowW), cint(windowH), 0, 0, 0, 0, 0, 0, GLFW_WINDOW) == 0:
         glfwTerminate()
  
-    #glfwSetWindowSizeCallback(Resize)
+    glfwSetWindowSizeCallback(Resize)
  
     glfwSwapInterval(1)
  

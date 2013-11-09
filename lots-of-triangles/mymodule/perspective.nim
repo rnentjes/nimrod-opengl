@@ -25,7 +25,7 @@ proc OrthographicProjection*(left: float32, right: float32, bottom: float32, top
     matrix[14] = (far + near) / (far - near)
     matrix[15] = 1.0
     
-proc PerspectiveProjection*(angle: float32, imageAspectRatio: float32, n: float32, f: float32, matrix: var array[0..15, float32]) =
+proc PerspectiveProjection*(angle: float32, imageAspectRatio: float32, near: float32, far: float32, matrix: var array[0..15, float32]) =
     var 
         r = DegToRad(angle)
         f = 1.0 / tan(r / 2.0)
@@ -42,12 +42,12 @@ proc PerspectiveProjection*(angle: float32, imageAspectRatio: float32, n: float3
    
     matrix[8] = 0.0
     matrix[9] = 0.0
-    matrix[10] = -(f + n) / (f - n)
+    matrix[10] = -(far + near) / (far - near)
     matrix[11] = -1.0
    
     matrix[12] = 0.0
     matrix[13] = 0.0
-    matrix[14] = -(2.0 * f * n) / (f - n)
+    matrix[14] = -(2.0 * far * near) / (far - near)
     matrix[15] = 0.0
 
 proc PerspectiveProjection2*(angle: float32, imageAspectRatio: float32, n: float32, f: float32) : array[0..15, float32] =
