@@ -162,16 +162,20 @@ proc Render() =
 
     shader.SetUniformMatrix("u_pMatrix", addr(pMatrix[0]))   
 
-    glBindBuffer(GL_ARRAY_BUFFER, vertex_vbo)
     glEnableVertexAttribArray(0)
+    glEnableVertexAttribArray(1)
+
+    glBindBuffer(GL_ARRAY_BUFFER, vertex_vbo)
     glVertexAttribPointer(vertexPosAttrLoc, 3'i32, cGL_FLOAT, false, 0'i32, nil)
     
     glBindBuffer(GL_ARRAY_BUFFER, color_vbo)
-    glEnableVertexAttribArray(1)
     glVertexAttribPointer(colorPosAttrLoc, 3'i32, cGL_FLOAT, false, 0'i32, nil)
 
     glDrawArrays(GL_TRIANGLES, 0, 3)
  
+    glDisableVertexAttribArray(0)
+    glDisableVertexAttribArray(1)
+
     shader.Begin
     
     glfwSwapBuffers()

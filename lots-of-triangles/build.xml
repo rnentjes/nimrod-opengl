@@ -12,7 +12,9 @@
     </target>
 
     <target name="release">
-        <exec executable="nimrod c -d:useRealtimeGC -d:release ${main.name}.nim" />
+        <exec executable="nimrod"  failonerror="true">
+            <arg line="c -d:useRealtimeGC -d:release ${main.name}.nim"/>
+        </exec>
     </target>
 
     <target name="compile">

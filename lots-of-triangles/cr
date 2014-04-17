@@ -1,3 +1,5 @@
+PATH=/home/rnentjes/Programming/nimrod/linux-x86_64/f30848148985/bin
+
 nimrod c -d:useRealtimeGC LotsOfTriangles.nim
 
 ./LotsOfTriangles

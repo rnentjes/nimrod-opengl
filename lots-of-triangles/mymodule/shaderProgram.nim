@@ -1,7 +1,6 @@
 #shaderProgram
 import opengl
 
-
 type
   ShaderType = enum
     VertexShader,
@@ -15,9 +14,8 @@ type
   PShaderProgram* = ref TShaderProgram
 
   
-proc LoadShader(shaderType: ShaderType, file: string ): int  
+proc LoadShader(shaderType: ShaderType, file: string ): int
 
-  
 proc createShaderProgram*(name: string) : PShaderProgram =
   result = new(TShaderProgram)
   
