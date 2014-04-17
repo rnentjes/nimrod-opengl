@@ -43,7 +43,7 @@ var
     resized: bool = true
     
     shader: PShaderProgram
-    mesh: PMesh
+    mymesh: PMesh
   
  
 type
@@ -83,7 +83,7 @@ proc InitializeBuffers() =
     var colors = [   1.0'f32,   1.0'f32,  0.0'f32, 
                      0.0'f32,   1.0'f32,  1.0'f32, 
                      1.0'f32,   0.0'f32,  1.0'f32,
-                   ]
+                 ]
  
     glGenBuffers(1, addr(color_vbo))
  
@@ -91,7 +91,7 @@ proc InitializeBuffers() =
  
     glBufferData(GL_ARRAY_BUFFER, sizeof(GL_FLOAT) * colors.len, addr(colors[0]), GL_STATIC_DRAW)
 
-    mesh = createMesh(9)
+    mymesh = createMesh(9)
 
 ## -------------------------------------------------------------------------------
  
