@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!-- build script -->
-<project name="nimrod-triangles" default="run" basedir=".">
+<project name="lots-of-triangles" default="run" basedir=".">
 
     <property name="main.name" value="LotsOfTriangles" />
     <property name="nimcache" value="nimcache" />
@@ -27,6 +27,5 @@
     <target name="run" depends="compile">
         <exec executable="./${main.name}" />
     </target>
-
 
 </project>

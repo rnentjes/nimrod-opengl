@@ -5,16 +5,16 @@ import opengl
 type
   TMesh = object
     data: array[0..4096, float32]
-    count: int
+    count: GLsizei
     blockLength: int
     vertex_vbo: GLuint
     attrs: seq[TMeshAttr]
 
   PMesh* = ref TMesh
 
-  TMeshAttr = object
-    attrType: int
-    numberOfElements: int
+  TMeshAttr* = object
+    attrType*: int
+    numberOfElements*: int
 
 
 proc createMesh*(attribs: seq[TMeshAttr]) : PMesh =
@@ -47,7 +47,11 @@ proc Reset*(mesh: PMesh) =
 proc Draw*(mesh: PMesh) =
   glBindBuffer(GL_ARRAY_BUFFER, mesh.vertex_vbo)
   glEnableVertexAttribArray(0)
-  #glVertexAttribPointer(vertexPosAttrLoc, 3'i32, cGL_FLOAT, false, 0'i32, nil)
+
+  var index = 0
+  for attr in mesh.attrs:
+    glVertexAttribPointer(attr.attrType, attr.numberOfElements, cGL_FLOAT, false, mesh.blockLength, index)
+    index += attr.numberOfElements
 
   glDrawArrays(GL_TRIANGLES, 0, mesh.count)
   mesh.Reset

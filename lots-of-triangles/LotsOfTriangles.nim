@@ -91,7 +91,13 @@ proc InitializeBuffers() =
  
     glBufferData(GL_ARRAY_BUFFER, sizeof(GL_FLOAT) * colors.len, addr(colors[0]), GL_STATIC_DRAW)
 
-    mymesh = createMesh(9)
+    #var attribs = newSeq(TMeshAttr, 0)
+
+    #attribs.add(TMeshAttr(attrType: 0,numberOfElements: 0))
+
+    mymesh = createMesh( @[
+            TMeshAttr(attrType: 0,numberOfElements: 0),
+            TMeshAttr(attrType: 1,numberOfElements: 1)] )
 
 ## -------------------------------------------------------------------------------
  
@@ -176,7 +182,7 @@ proc Render() =
     glDisableVertexAttribArray(0)
     glDisableVertexAttribArray(1)
 
-    shader.Begin
+    shader.Done
     
     glfwSwapBuffers()
 
