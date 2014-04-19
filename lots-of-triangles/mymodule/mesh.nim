@@ -1,6 +1,7 @@
 # Mesh
 
 import opengl
+import shaderProgram
 
 type
   TMesh = object
@@ -8,23 +9,27 @@ type
     count: GLsizei
     blockLength: GLsizei
     vertex_vbo: GLuint
+    program: PShaderProgram
     attrs: seq[TMeshAttr]
 
   PMesh* = ref TMesh
 
   TMeshAttr* = object
-    attrType*: GLuint
+    attribute*: string
+    attrIndex*: GLuint
     numberOfElements*: GLint
 
 
-proc createMesh*(attribs: seq[TMeshAttr]) : PMesh =
+proc createMesh*(program: PShaderProgram, attribs: seq[TMeshAttr]) : PMesh =
   result = new(TMesh)
 
+  result.program = program
   result.attrs = attribs
   result.count = 0
   result.blockLength = 0
 
   for attr in attribs:
+    attr.attrIndex = program.GetAttribLocation(attr.attribute)
     result.blockLength = result.blockLength + attr.numberOfElements
 
   glGenBuffers(1, addr(result.vertex_vbo))
@@ -50,9 +55,8 @@ proc Draw*(mesh: PMesh) =
 
   var index = 0
   for attr in mesh.attrs:
-    glVertexAttribPointer(attr.attrType, attr.numberOfElements, cGL_FLOAT, false, mesh.blockLength, cast[GLvoid](index))
+    glVertexAttribPointer(attr.attrIndex, attr.numberOfElements, cGL_FLOAT, false, mesh.blockLength, cast[GLvoid](index))
     index += attr.numberOfElements
 
-  glDrawArrays(GL_TRIANGLES, 0, mesh.count)
+  glDrawArrays(GL_TRIANGLES, 0, cast[GLsizei](mesh.count / mesh.blockLength))
   mesh.Reset
-

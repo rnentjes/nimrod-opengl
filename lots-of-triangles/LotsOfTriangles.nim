@@ -91,13 +91,6 @@ proc InitializeBuffers() =
  
     glBufferData(GL_ARRAY_BUFFER, sizeof(GL_FLOAT) * colors.len, addr(colors[0]), GL_STATIC_DRAW)
 
-    #var attribs = newSeq(TMeshAttr, 0)
-
-    #attribs.add(TMeshAttr(attrType: 0,numberOfElements: 0))
-
-    mymesh = createMesh( @[
-            TMeshAttr(attrType: 0,numberOfElements: 0),
-            TMeshAttr(attrType: 1,numberOfElements: 1)] )
 
 ## -------------------------------------------------------------------------------
  
@@ -134,6 +127,10 @@ proc Initialize() =
     
     vertexPosAttrLoc = shader.GetAttribLocation("a_position")
     colorPosAttrLoc = shader.GetAttribLocation("a_color")
+
+    mymesh = createMesh(program, @[
+            TMeshAttr(attribute: "a_position", numberOfElements: 0),
+            TMeshAttr(attribute: "a_color", numberOfElements: 1)] )    
     
     InitializeBuffers()
  
