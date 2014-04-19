@@ -6,15 +6,15 @@ type
   TMesh = object
     data: array[0..4096, float32]
     count: GLsizei
-    blockLength: int
+    blockLength: GLsizei
     vertex_vbo: GLuint
     attrs: seq[TMeshAttr]
 
   PMesh* = ref TMesh
 
   TMeshAttr* = object
-    attrType*: int
-    numberOfElements*: int
+    attrType*: GLuint
+    numberOfElements*: GLint
 
 
 proc createMesh*(attribs: seq[TMeshAttr]) : PMesh =
@@ -50,7 +50,7 @@ proc Draw*(mesh: PMesh) =
 
   var index = 0
   for attr in mesh.attrs:
-    glVertexAttribPointer(attr.attrType, attr.numberOfElements, cGL_FLOAT, false, mesh.blockLength, index)
+    glVertexAttribPointer(attr.attrType, attr.numberOfElements, cGL_FLOAT, false, mesh.blockLength, cast[GLvoid](index))
     index += attr.numberOfElements
 
   glDrawArrays(GL_TRIANGLES, 0, mesh.count)
