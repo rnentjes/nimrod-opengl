@@ -7,14 +7,14 @@ type
     FragmentShader
         
   TShaderProgram = object
-    handle: int
-    vshaderID: int
-    fshaderID: int
+    handle: TGLuint
+    vshaderID: GLuint
+    fshaderID: GLuint
     
   PShaderProgram* = ref TShaderProgram
 
   
-proc LoadShader(shaderType: ShaderType, file: string ): int
+proc LoadShader(shaderType: ShaderType, file: string ): TGLuint
 
 proc createShaderProgram*(name: string) : PShaderProgram =
   result = new(TShaderProgram)
@@ -22,7 +22,7 @@ proc createShaderProgram*(name: string) : PShaderProgram =
   result.vshaderID = LoadShader(ShaderType.VertexShader, name & ".vert")
   result.fshaderID = LoadShader(ShaderType.FragmentShader, name & ".frag")
  
-  if result.vshaderID == -1 or result.fshaderID == -1:
+  if cast[int](result.vshaderID) == -1 or cast[int](result.fshaderID) == -1:
     quit("Error compiling shaders! Can't get shader handles!")
  
   result.handle = glCreateProgram()
@@ -56,13 +56,13 @@ proc GetUniformLocation*(program: PShaderProgram, name: string) : GLint =
   result = glGetUniformLocation(program.handle, name)
 
 
-proc SetUniformMatrix*(program: PShaderProgram, name: string, value: PGLFloat) =
+proc SetUniformMatrix*(program: PShaderProgram, name: string, value: ptr GLFloat) =
   var location = glGetUniformLocation(program.handle, name)
 
   glUniformMatrix4fv(location, 1, false, value)
 
   
-proc LoadShader(shaderType: ShaderType, file: string ): int =
+proc LoadShader(shaderType: ShaderType, file: string ): TGLuint =
     
     if shaderType == VertexShader:
         result = glCreateShader(GL_VERTEX_SHADER)
@@ -70,7 +70,7 @@ proc LoadShader(shaderType: ShaderType, file: string ): int =
     else:
         result = glCreateShader(GL_FRAGMENT_SHADER)
  
-    if result == -1:
+    if cast[int](result) == -1:
         quit("Error compiling shaders! Can't get shader handle!")
         
     var shaderSrc = readFile(file)
@@ -90,13 +90,13 @@ proc LoadShader(shaderType: ShaderType, file: string ): int =
     glGetShaderiv(shader, GL_COMPILE_STATUS, addr(compileResult))
  
     if compileResult != GL_TRUE:
-        result = -1
+        result = cast[TGLuint](-1)
 
-        var logLength : GLInt
+        var logLength : GLsizei
         glGetShaderiv(shader, GL_INFO_LOG_LENGTH, addr(logLength))
 
         var log : cstring = cast[cstring](alloc0(logLength))
-        glGetShaderInfoLog(shader, logLength, logLength, log)
+        glGetShaderInfoLog(shader, logLength, addr(logLength), log)
         echo ("Error compiling the shader: ", file, " error: ", log)
  
         dealloc(log)

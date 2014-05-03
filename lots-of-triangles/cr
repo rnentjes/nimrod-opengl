@@ -1,8 +1,8 @@
 #!/bin/bash
-PATH=/home/rnentjes/Programming/nimrod/linux-x86_64/f30848148985/bin
+PATH=/home/rnentjes/Programming/nimrod_0.9.4_linux_amd64/bin:$PATH
 
 rm ./LotsOfTriangles
 
-nimrod c -d:useRealtimeGC --parallelBuild:1 LotsOfTriangles.nim
+nimrod c --debugger:on -d:useRealtimeGC --parallelBuild:0 LotsOfTriangles.nim
 
 ./LotsOfTriangles

@@ -333,7 +333,7 @@ proc Run() =
  
         Render()
         
-        GC_step(1000)
+        #GC_step(1000)
  
         running = glfwGetKey(GLFW_KEY_ESC) == GLFW_RELEASE and
                   glfwGetWindowParam(GLFW_OPENED) == GL_TRUE
