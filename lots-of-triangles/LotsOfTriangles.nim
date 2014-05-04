@@ -7,6 +7,7 @@ import math
 import mymodule/perspective
 import mymodule/shaderProgram
 import mymodule/mesh
+import mymodule/matrix
 
 ## -------------------------------------------------------------------------------
  
@@ -30,6 +31,8 @@ var
                                        0.0'f32, 1.0'f32, 0.0'f32, 0.0'f32, 
                                        0.0'f32, 0.0'f32, 1.0'f32, 0.0'f32, 
                                        0.0'f32, 0.0'f32, 0.0'f32, 1.0'f32]
+
+    mymatrix: PMatrix                                   
 
     resized: bool = true
     
@@ -90,7 +93,9 @@ proc Initialize() =
 
     mymesh = createMesh(shader, 
         @[TMeshAttr(attribute: "a_position", numberOfElements: 3),
-          TMeshAttr(attribute: "a_color", numberOfElements: 3)] )    
+          TMeshAttr(attribute: "a_color", numberOfElements: 3)] ) 
+
+    mymatrix = createMatrix()        
      
  
 ## -------------------------------------------------------------------------------
@@ -121,15 +126,24 @@ proc Render() =
 
     var z : float32
 
-    z = float32(-13 + sin(currentTime) * 13)
+    z = float32(-13 + sin(currentTime) * 12)
+    var r = float32((1 + sin(currentTime * 3)) / 2.0)
+    var g = float32((1 + sin(currentTime * 5)) / 2.0)
+    var b = float32((1 + sin(currentTime * 7)) / 2.0)
     
     mymesh.Begin
 
-    mymesh.program.SetUniformMatrix("u_pMatrix", addr(pMatrix[0]))
+    #mymesh.program.SetUniformMatrix("u_pMatrix", addr(pMatrix[0]))
+    mymatrix.Rotatez(0.001'f32)
+    mymesh.program.SetUniformMatrix("u_pMatrix", mymatrix.Address)
 
-    mymesh.AddVertices(-0.5'f32, 0.0'f32, z, 1'f32, 1'f32, 0'f32)
-    mymesh.AddVertices( 0.5'f32, 0.0'f32, z, 0'f32, 1'f32, 1'f32)
-    mymesh.AddVertices( 0.0'f32, 0.5'f32, z, 1'f32, 0'f32, 1'f32)
+    mymesh.AddVertices(-0.5'f32, 0.1'f32, z, r,     g,     0'f32)
+    mymesh.AddVertices( 0.5'f32, 0.1'f32, z, 0'f32, g,     b)
+    mymesh.AddVertices( 0.0'f32, 1'f32,   z, r,     0'f32, b)
+
+    mymesh.AddVertices(-0.5'f32, -0.1'f32,  z, r,     g,     0'f32)
+    mymesh.AddVertices( 0.5'f32, -0.1'f32,  z, 0'f32, g,     b)
+    mymesh.AddVertices( 0.0'f32, -1'f32,    z, r,     0'f32, b)
 
     #mymesh.Draw
     
@@ -170,10 +184,9 @@ proc Run() =
           
           glViewport(0, 0, windowW, windowH)
 
-          #PerspectiveProjection(60.0, float32(windowW) / float32(windowH), 1.0, 25.0, pMatrix)
-          OrthographicProjection(-5'f32, 5'f32, -5'f32, 5'f32, -1'f32, -25'f32, pMatrix);
-          #pMatrix = PerspectiveProjection2(60.0'f32, float32(windowW) / float32(windowH), 1.0'f32, 25.0'f32)
-
+          mymatrix.PerspectiveProjection(60.0, float32(windowW) / float32(windowH), 1.0, 25.0)
+          PerspectiveProjection(60.0, float32(windowW) / float32(windowH), 1.0, 25.0, pMatrix)
+          #OrthographicProjection(-5'f32, 5'f32, -5'f32, 5'f32, -1'f32, -25'f32, pMatrix);
 
         Update()
  

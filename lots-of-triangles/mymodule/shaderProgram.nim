@@ -56,10 +56,10 @@ proc GetUniformLocation*(program: PShaderProgram, name: string) : GLint =
   result = glGetUniformLocation(program.handle, name)
 
 
-proc SetUniformMatrix*(program: PShaderProgram, name: string, value: ptr GLFloat) =
+proc SetUniformMatrix*(program: PShaderProgram, name: string, value: ptr float) =
   var location = glGetUniformLocation(program.handle, name)
 
-  glUniformMatrix4fv(location, 1, false, value)
+  glUniformMatrix4fv(location, 1, false, cast[ptr GLfloat](value))
 
   
 proc LoadShader(shaderType: ShaderType, file: string ): TGLuint =
