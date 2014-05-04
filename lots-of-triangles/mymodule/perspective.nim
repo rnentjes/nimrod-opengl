@@ -1,7 +1,7 @@
 import math
 
 proc DegToRad(deg: float32) :float32 =
-    result = deg / (PI / 180.0)
+    result = float32((deg / 180.0'f32) * PI)
         
 proc OrthographicProjection*(left: float32, right: float32, bottom: float32, top: float32, near: float32, far: float32, matrix: var array[0..15, float32]) =
        
@@ -28,27 +28,27 @@ proc OrthographicProjection*(left: float32, right: float32, bottom: float32, top
 proc PerspectiveProjection*(angle: float32, imageAspectRatio: float32, near: float32, far: float32, matrix: var array[0..15, float32]) =
     var 
         r = DegToRad(angle)
-        f = 1.0 / tan(r / 2.0)
+        f = float32(1.0'f32 / tan(r / 2.0'f32))
         
     matrix[0] = f / imageAspectRatio
-    matrix[1] = 0.0
-    matrix[2] = 0.0
-    matrix[3] = 0.0
+    matrix[1] = 0.0'f32
+    matrix[2] = 0.0'f32
+    matrix[3] = 0.0'f32
    
-    matrix[4] = 0.0
+    matrix[4] = 0.0'f32
     matrix[5] = f
-    matrix[6] = 0.0
-    matrix[7] = 0.0
+    matrix[6] = 0.0'f32
+    matrix[7] = 0.0'f32
    
-    matrix[8] = 0.0
-    matrix[9] = 0.0
+    matrix[8] = 0.0'f32
+    matrix[9] = 0.0'f32
     matrix[10] = -(far + near) / (far - near)
-    matrix[11] = -1.0
+    matrix[11] = -1.0'f32
    
-    matrix[12] = 0.0
-    matrix[13] = 0.0
-    matrix[14] = -(2.0 * far * near) / (far - near)
-    matrix[15] = 0.0
+    matrix[12] = 0.0'f32
+    matrix[13] = 0.0'f32
+    matrix[14] = -(2.0'f32 * far * near) / (far - near)
+    matrix[15] = 0.0'f32
 
 proc PerspectiveProjection2*(angle: float32, imageAspectRatio: float32, n: float32, f: float32) : array[0..15, float32] =
 

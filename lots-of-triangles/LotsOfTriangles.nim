@@ -2,6 +2,7 @@ import glfw
 import opengl
 import strutils
 import typeinfo
+import math
 
 import mymodule/perspective
 import mymodule/shaderProgram
@@ -21,18 +22,8 @@ var
     windowW: GLint = 1024
     windowH: GLint = 768
  
-    vshaderID: int
-    fshaderID: int
-    shaderProg: int
- 
-    vertexPosAttrLoc: GLuint
-    colorPosAttrLoc: GLuint
-    
     startTime: cdouble
 
-    vertex_vbo: GLuint
-    color_vbo: GLuint
-    
     mvpMatrixUniLoc: int
 
     pMatrix: array[0..15, float32]  = [1.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 
@@ -44,7 +35,6 @@ var
     
     shader: PShaderProgram
     mymesh: PMesh
-  
  
 type
     ShaderType = enum
@@ -65,33 +55,6 @@ proc InitializeGL() =
 
     glClearColor(0.2,0.0,0.2,1.0)
     
-## -----------------------------------------------------------------------------
- 
-proc InitializeBuffers() =
-   
-    var vertices = [ 0.0'f32,   0.5'f32,  0.0'f32, 
-                    -0.5'f32,  -0.5'f32,  0.0'f32, 
-                     0.5'f32,  -0.5'f32,  0.0'f32,
-                   ]
- 
-    glGenBuffers(1, addr(vertex_vbo))
- 
-    glBindBuffer(GL_ARRAY_BUFFER, vertex_vbo)
- 
-    glBufferData(GL_ARRAY_BUFFER, sizeof(GL_FLOAT) * vertices.len, addr(vertices[0]), GL_STATIC_DRAW)
- 
-    var colors = [   1.0'f32,   1.0'f32,  0.0'f32, 
-                     0.0'f32,   1.0'f32,  1.0'f32, 
-                     1.0'f32,   0.0'f32,  1.0'f32,
-                 ]
- 
-    glGenBuffers(1, addr(color_vbo))
- 
-    glBindBuffer(GL_ARRAY_BUFFER, color_vbo)
- 
-    glBufferData(GL_ARRAY_BUFFER, sizeof(GL_FLOAT) * colors.len, addr(colors[0]), GL_STATIC_DRAW)
-
-
 ## -------------------------------------------------------------------------------
  
 proc Initialize() =
@@ -124,16 +87,11 @@ proc Initialize() =
     lastFPSTime = lastTime
 
     shader = createShaderProgram("shaders/shader")
-    
-    vertexPosAttrLoc = shader.GetAttribLocation("a_position")
-    colorPosAttrLoc = shader.GetAttribLocation("a_color")
 
-    mymesh = createMesh(shader, @[
-            TMeshAttr(attribute: "a_position", numberOfElements: 3),
-            TMeshAttr(attribute: "a_color", numberOfElements: 3)] )    
-    
-    InitializeBuffers()
- 
+    mymesh = createMesh(shader, 
+        @[TMeshAttr(attribute: "a_position", numberOfElements: 3),
+          TMeshAttr(attribute: "a_color", numberOfElements: 3)] )    
+     
  
 ## -------------------------------------------------------------------------------
 proc Update() =
@@ -160,42 +118,50 @@ proc Update() =
 proc Render() =
    
     glClear(GL_COLOR_BUFFER_BIT)
+
+    var z : float32
+
+    z = float32(-13 + sin(currentTime) * 13)
     
-    shader.Begin
-
-    shader.SetUniformMatrix("u_pMatrix", addr(pMatrix[0]))   
-
-    glEnableVertexAttribArray(0)
-    glEnableVertexAttribArray(1)
-
-    glBindBuffer(GL_ARRAY_BUFFER, vertex_vbo)
-    glVertexAttribPointer(vertexPosAttrLoc, 3'i32, cGL_FLOAT, false, 0'i32, nil)
-    
-    glBindBuffer(GL_ARRAY_BUFFER, color_vbo)
-    glVertexAttribPointer(colorPosAttrLoc, 3'i32, cGL_FLOAT, false, 0'i32, nil)
-
-    glDrawArrays(GL_TRIANGLES, 0, 3)
- 
-    glDisableVertexAttribArray(0)
-    glDisableVertexAttribArray(1)
-
-    shader.Done
-
     mymesh.Begin
 
-    mymesh.program.SetUniformMatrix("u_pMatrix", addr(pMatrix[0]))   
+    mymesh.program.SetUniformMatrix("u_pMatrix", addr(pMatrix[0]))
 
-    mymesh.AddVertices(-1'f32, 0'f32, 0'f32, 1'f32, 0'f32, 0'f32)
-    mymesh.AddVertices( 1'f32, 0'f32, 0'f32, 0'f32, 1'f32, 0'f32)
-    mymesh.AddVertices( 0'f32,-1'f32, 0'f32, 0'f32, 0'f32, 1'f32)
+    mymesh.AddVertices(-0.5'f32, 0.0'f32, z, 1'f32, 1'f32, 0'f32)
+    mymesh.AddVertices( 0.5'f32, 0.0'f32, z, 0'f32, 1'f32, 1'f32)
+    mymesh.AddVertices( 0.0'f32, 0.5'f32, z, 1'f32, 0'f32, 1'f32)
+
+    #mymesh.Draw
     
     mymesh.Done
+
+    #shader.Begin
+
+    #shader.SetUniformMatrix("u_pMatrix", addr(pMatrix[0]))   
+
+    #glEnableVertexAttribArray(vertexPosAttrLoc)
+    #glEnableVertexAttribArray(colorPosAttrLoc)
+
+    #glBindBuffer(GL_ARRAY_BUFFER, vertex_vbo)
+    #glVertexAttribPointer(vertexPosAttrLoc, 3'i32, cGL_FLOAT, false, 0'i32, nil)
+    
+    #glBindBuffer(GL_ARRAY_BUFFER, color_vbo)
+    #glVertexAttribPointer(colorPosAttrLoc, 3'i32, cGL_FLOAT, false, 0'i32, nil)
+
+    #glDrawArrays(GL_TRIANGLES, 0, 3)
+ 
+    #glDisableVertexAttribArray(vertexPosAttrLoc)
+    #glDisableVertexAttribArray(colorPosAttrLoc)
+
+    #shader.Done
+    #shader.Done
 
     glfwSwapBuffers()
 
 ## --------------------------------------------------------------------------------
  
 proc Run() =
+    #GC_disable()
 
     while running:
    
@@ -204,13 +170,16 @@ proc Run() =
           
           glViewport(0, 0, windowW, windowH)
 
-          #PerspectiveProjection(60.0, float32(windowW) / float32(windowH), -1.0, -50.0, pMatrix)
-          pMatrix = PerspectiveProjection2(60.0, float32(windowW) / float32(windowH), -1.0, -50.0)
+          #PerspectiveProjection(60.0, float32(windowW) / float32(windowH), 1.0, 25.0, pMatrix)
+          OrthographicProjection(-5'f32, 5'f32, -5'f32, 5'f32, -1'f32, -25'f32, pMatrix);
+          #pMatrix = PerspectiveProjection2(60.0'f32, float32(windowW) / float32(windowH), 1.0'f32, 25.0'f32)
 
 
         Update()
  
         Render()
+
+        #GC_step(2000)
   
         running = glfwGetKey(GLFW_KEY_ESC) == GLFW_RELEASE and
                   glfwGetWindowParam(GLFW_OPENED) == GL_TRUE

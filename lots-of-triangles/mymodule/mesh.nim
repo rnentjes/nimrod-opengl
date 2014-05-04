@@ -52,25 +52,25 @@ proc AddVertices*(mesh: PMesh, verts: varargs[float32]) =
 proc Reset*(mesh: PMesh) =
   mesh.count = 0
 
-
 proc Draw*(mesh: PMesh) =
   glBindBuffer(GL_ARRAY_BUFFER, mesh.vertex_vbo)
-  glEnableVertexAttribArray(0)
 
   var index = 0
   for attr in mesh.attrs:
     glVertexAttribPointer(mesh.attrLocations[attr.attribute], attr.numberOfElements, 
-      cGL_FLOAT, false, mesh.blockLength, cast[pointer](index))
+      cGL_FLOAT, false, cast[GLsizei](mesh.blockLength * sizeof(GL_FLOAT)), cast[pointer](index * sizeof(GL_FLOAT)))
     index += attr.numberOfElements
+ 
+  glBufferData(GL_ARRAY_BUFFER, cast[GLsizeiptr](sizeof(GL_FLOAT) * int(mesh.count)), addr(mesh.data[0]), GL_DYNAMIC_DRAW)
 
-  glBindBuffer(GL_ARRAY_BUFFER, mesh.vertex_vbo)
-  glBufferData(GL_ARRAY_BUFFER, sizeof(GL_FLOAT) * mesh.data.len, addr(mesh.data[0]), GL_DYNAMIC_DRAW)
+  glDrawArrays(GL_TRIANGLES, 0, cast[GLsizei](uint(mesh.count / mesh.blockLength)))
 
-  glDrawArrays(GL_TRIANGLES, 0, cast[GLsizei](mesh.count / mesh.blockLength))
   mesh.Reset
 
 proc Begin*(mesh: PMesh) =
   mesh.program.Begin()
+
+  glBindBuffer(GL_ARRAY_BUFFER, mesh.vertex_vbo)
 
   for attr in mesh.attrs:
     glEnableVertexAttribArray(mesh.attrLocations[attr.attribute])
@@ -82,4 +82,5 @@ proc Done*(mesh: PMesh) =
   for attr in mesh.attrs:
     glDisableVertexAttribArray(mesh.attrLocations[attr.attribute])
 
+  glBindBuffer(GL_ARRAY_BUFFER, 0)
   mesh.program.Done()

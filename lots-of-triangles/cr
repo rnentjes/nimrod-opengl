@@ -1,8 +1,9 @@
 #!/bin/bash
-PATH=/home/rnentjes/Programming/nimrod_0.9.4_linux_amd64/bin:$PATH
+PATH=/home/rnentjes/Programming/apitrace/build/:$PATH
 
 rm ./LotsOfTriangles
 
-nimrod c --debugger:on -d:useRealtimeGC --parallelBuild:0 LotsOfTriangles.nim
+nimrod c -d:useRealtimeGC --parallelBuild:0 LotsOfTriangles.nim
 
+#apitrace trace ./LotsOfTriangles
 ./LotsOfTriangles
