@@ -13,7 +13,6 @@ type
     
   PShaderProgram* = ref TShaderProgram
 
-  
 proc LoadShader(shaderType: ShaderType, file: string ): TGLuint
 
 proc createShaderProgram*(name: string) : PShaderProgram =
@@ -70,7 +69,7 @@ proc LoadShader(shaderType: ShaderType, file: string ): TGLuint =
     else:
         result = glCreateShader(GL_FRAGMENT_SHADER)
  
-    if cast[int](result) == -1:
+    if int(result) == -1:
         quit("Error compiling shaders! Can't get shader handle!")
         
     var shaderSrc = readFile(file)

@@ -17,9 +17,9 @@ var
     windowW: GLint = 640
     windowH: GLint = 480
  
-    vshaderID: int
-    fshaderID: int
-    shaderProg: int
+    vshaderID: TGLuint
+    fshaderID: TGLuint
+    shaderProg: TGLuint
  
     vertexPosAttrLoc: GLuint
     colorsPosAttrLoc: GLuint
@@ -75,7 +75,7 @@ proc Resize(width: GLint, height: int32) =
  
 ## -------------------------------------------------------------------------------
  
-proc LoadShader(shaderType: ShaderType, file: string ): int =
+proc LoadShader(shaderType: ShaderType, file: string ): TGLuint =
     
     if shaderType == VertexShader:
         result = glCreateShader(GL_VERTEX_SHADER)
@@ -83,7 +83,9 @@ proc LoadShader(shaderType: ShaderType, file: string ): int =
     else:
         result = glCreateShader(GL_FRAGMENT_SHADER)
  
- 
+    if int(result) == -1:
+        quit("Error compiling shaders! Can't get shader handle!")
+        
     var shaderSrc = readFile(file)
  
     var shader = result
@@ -101,16 +103,17 @@ proc LoadShader(shaderType: ShaderType, file: string ): int =
     glGetShaderiv(shader, GL_COMPILE_STATUS, addr(compileResult))
  
     if compileResult != GL_TRUE:
-        result = -1
+        result = cast[TGLuint](-1)
 
-        var logLength : GLInt
+        var logLength : GLsizei
         glGetShaderiv(shader, GL_INFO_LOG_LENGTH, addr(logLength))
 
         var log : cstring = cast[cstring](alloc0(logLength))
-        glGetShaderInfoLog(shader, logLength, logLength, log)
+        glGetShaderInfoLog(shader, logLength, addr(logLength), log)
         echo ("Error compiling the shader: ", file, " error: ", log)
  
-        dealloc(log) 
+        dealloc(log)
+
 ## ---------------------------------------------------------------------
  
 proc InitializeGL() =
@@ -121,8 +124,7 @@ proc InitializeGL() =
     glDisable(GL_DEPTH_TEST)
     
 proc PrintOpenGLError() =
-
-    nil
+    discard
 
 
 ## ---------------------------------------------------------------------
@@ -132,7 +134,7 @@ proc InitializeShaders() =
     vshaderID = LoadShader(ShaderType.VertexShader, "vertexshader.vert")
     fshaderID = LoadShader(ShaderType.FragmentShader, "fragshader.frag")
  
-    if vshaderID == -1 or fshaderID == -1:
+    if int(vshaderID) == -1 or int(fshaderID) == -1:
         quit("Error compiling shaders!")
  
     shaderProg = glCreateProgram()

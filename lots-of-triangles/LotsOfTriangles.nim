@@ -27,11 +27,7 @@ var
 
     mvpMatrixUniLoc: int
 
-    pMatrix: array[0..15, float32]  = [1.0'f32, 0.0'f32, 0.0'f32, 0.0'f32, 
-                                       0.0'f32, 1.0'f32, 0.0'f32, 0.0'f32, 
-                                       0.0'f32, 0.0'f32, 1.0'f32, 0.0'f32, 
-                                       0.0'f32, 0.0'f32, 0.0'f32, 1.0'f32]
-
+    pmatrix: PMatrix
     mymatrix: PMatrix                                   
 
     resized: bool = true
@@ -91,11 +87,12 @@ proc Initialize() =
 
     shader = createShaderProgram("shaders/shader")
 
-    mymesh = createMesh(shader, 
+    mymesh = createMesh(shader, GL_TRIANGLES,
         @[TMeshAttr(attribute: "a_position", numberOfElements: 3),
           TMeshAttr(attribute: "a_color", numberOfElements: 3)] ) 
 
     mymatrix = createMatrix()        
+    pmatrix = CreateMatrix()
      
  
 ## -------------------------------------------------------------------------------
@@ -126,16 +123,29 @@ proc Render() =
 
     var z : float32
 
-    z = float32(-13 + sin(currentTime) * 12)
+    z = float32(-250 + sin(currentTime) * 249)
     var r = float32((1 + sin(currentTime * 3)) / 2.0)
     var g = float32((1 + sin(currentTime * 5)) / 2.0)
     var b = float32((1 + sin(currentTime * 7)) / 2.0)
     
+    var r1 = float32((1 + sin(currentTime * 0.3)) / 2.0)
+    var g1 = float32((1 + sin(currentTime * 0.5)) / 2.0)
+    var b1 = float32((1 + sin(currentTime * 0.7)) / 2.0)
+
     mymesh.Begin
 
-    #mymesh.program.SetUniformMatrix("u_pMatrix", addr(pMatrix[0]))
-    mymatrix.Rotatez(0.001'f32)
-    mymesh.program.SetUniformMatrix("u_pMatrix", mymatrix.Address)
+    mymatrix.Rotatez(0.005'f32)
+
+    mymesh.program.SetUniformMatrix("u_pMatrix", pmatrix.Address)
+    mymesh.program.SetUniformMatrix("u_mMatrix", mymatrix.Address)
+
+    mymesh.AddVertices( -4'f32,  -4'f32,   -2'f32, 1-r1,  1-g1,  1-b1)
+    mymesh.AddVertices(  4'f32,  -4'f32,   -2'f32, r1,    g1,     b1)
+    mymesh.AddVertices(  4'f32,   4'f32,   -2'f32, g1,    b1,     r1)
+
+    mymesh.AddVertices(  4'f32,   4'f32,   -2'f32, g1,    b1,     r1)
+    mymesh.AddVertices( -4'f32,  -4'f32,   -2'f32, 1-r1,  1-g1,  1-b1)
+    mymesh.AddVertices( -4'f32,   4'f32,   -2'f32, r1,    g1,     b1)
 
     mymesh.AddVertices(-0.5'f32, 0.1'f32, z, r,     g,     0'f32)
     mymesh.AddVertices( 0.5'f32, 0.1'f32, z, 0'f32, g,     b)
@@ -144,31 +154,8 @@ proc Render() =
     mymesh.AddVertices(-0.5'f32, -0.1'f32,  z, r,     g,     0'f32)
     mymesh.AddVertices( 0.5'f32, -0.1'f32,  z, 0'f32, g,     b)
     mymesh.AddVertices( 0.0'f32, -1'f32,    z, r,     0'f32, b)
-
-    #mymesh.Draw
     
     mymesh.Done
-
-    #shader.Begin
-
-    #shader.SetUniformMatrix("u_pMatrix", addr(pMatrix[0]))   
-
-    #glEnableVertexAttribArray(vertexPosAttrLoc)
-    #glEnableVertexAttribArray(colorPosAttrLoc)
-
-    #glBindBuffer(GL_ARRAY_BUFFER, vertex_vbo)
-    #glVertexAttribPointer(vertexPosAttrLoc, 3'i32, cGL_FLOAT, false, 0'i32, nil)
-    
-    #glBindBuffer(GL_ARRAY_BUFFER, color_vbo)
-    #glVertexAttribPointer(colorPosAttrLoc, 3'i32, cGL_FLOAT, false, 0'i32, nil)
-
-    #glDrawArrays(GL_TRIANGLES, 0, 3)
- 
-    #glDisableVertexAttribArray(vertexPosAttrLoc)
-    #glDisableVertexAttribArray(colorPosAttrLoc)
-
-    #shader.Done
-    #shader.Done
 
     glfwSwapBuffers()
 
@@ -184,8 +171,8 @@ proc Run() =
           
           glViewport(0, 0, windowW, windowH)
 
-          mymatrix.PerspectiveProjection(60.0, float32(windowW) / float32(windowH), 1.0, 25.0)
-          PerspectiveProjection(60.0, float32(windowW) / float32(windowH), 1.0, 25.0, pMatrix)
+          #mymatrix.PerspectiveProjection(60.0, float32(windowW) / float32(windowH), 1.0, 25.0)
+          pmatrix.PerspectiveProjection(60.0, float32(windowW) / float32(windowH), 1.0, 500.0)
           #OrthographicProjection(-5'f32, 5'f32, -5'f32, 5'f32, -1'f32, -25'f32, pMatrix);
 
         Update()

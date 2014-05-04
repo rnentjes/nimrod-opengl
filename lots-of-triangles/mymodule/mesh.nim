@@ -6,6 +6,7 @@ import tables
 
 type
   TMesh = object
+    drawType: GLenum
     data: array[0..4096, float32]
     count: GLsizei
     blockLength: GLsizei
@@ -23,9 +24,10 @@ type
 
   PMeshAttr* = ref TMeshAttr
 
-proc createMesh*(program: PShaderProgram, attribs: seq[TMeshAttr]) : PMesh =
+proc createMesh*(program: PShaderProgram, drawType: GLenum, attribs: seq[TMeshAttr]) : PMesh =
   result = new(TMesh)
 
+  result.drawType = drawType
   result.program = program
   result.attrs = attribs
   result.count = 0
@@ -63,7 +65,7 @@ proc Draw*(mesh: PMesh) =
  
   glBufferData(GL_ARRAY_BUFFER, cast[GLsizeiptr](sizeof(GL_FLOAT) * int(mesh.count)), addr(mesh.data[0]), GL_DYNAMIC_DRAW)
 
-  glDrawArrays(GL_TRIANGLES, 0, cast[GLsizei](uint(mesh.count / mesh.blockLength)))
+  glDrawArrays(mesh.drawType, 0, cast[GLsizei](uint(mesh.count / mesh.blockLength)))
 
   mesh.Reset
 
