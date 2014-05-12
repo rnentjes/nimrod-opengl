@@ -28,6 +28,7 @@ var
     mvpMatrixUniLoc: int
 
     pmatrix: PMatrix
+    backmatrix: PMatrix                                   
     mymatrix: PMatrix                                   
 
     resized: bool = true
@@ -92,6 +93,7 @@ proc Initialize() =
           TMeshAttr(attribute: "a_color", numberOfElements: 3)] ) 
 
     mymatrix = createMatrix()        
+    backmatrix = createMatrix()        
     pmatrix = CreateMatrix()
      
  
@@ -123,10 +125,10 @@ proc Render() =
 
     var z : float32
 
-    z = float32(-250 + sin(currentTime) * 249)
-    var r = float32((1 + sin(currentTime * 3)) / 2.0)
-    var g = float32((1 + sin(currentTime * 5)) / 2.0)
-    var b = float32((1 + sin(currentTime * 7)) / 2.0)
+    z = float32(-2 + sin(currentTime / 3) * 1)
+    var r = float32((1 + sin(currentTime * 0.7)) / 2.0)
+    var g = float32((1 + sin(currentTime * 0.3)) / 2.0)
+    var b = float32((1 + sin(currentTime * 0.5)) / 2.0)
     
     var r1 = float32((1 + sin(currentTime * 0.3)) / 2.0)
     var g1 = float32((1 + sin(currentTime * 0.5)) / 2.0)
@@ -134,10 +136,12 @@ proc Render() =
 
     mymesh.Begin
 
-    mymatrix.Rotatez(0.005'f32)
+    backmatrix.Rotatez(0.005'f32)
+    mymatrix.Rotatez(0.03'f32)
+    mymatrix.Rotatex(0.07'f32)
 
     mymesh.program.SetUniformMatrix("u_pMatrix", pmatrix.Address)
-    mymesh.program.SetUniformMatrix("u_mMatrix", mymatrix.Address)
+    mymesh.program.SetUniformMatrix("u_mMatrix", backmatrix.Address)
 
     mymesh.AddVertices( -4'f32,  -4'f32,   -2'f32, 1-r1,  1-g1,  1-b1)
     mymesh.AddVertices(  4'f32,  -4'f32,   -2'f32, r1,    g1,     b1)
@@ -146,6 +150,10 @@ proc Render() =
     mymesh.AddVertices(  4'f32,   4'f32,   -2'f32, g1,    b1,     r1)
     mymesh.AddVertices( -4'f32,  -4'f32,   -2'f32, 1-r1,  1-g1,  1-b1)
     mymesh.AddVertices( -4'f32,   4'f32,   -2'f32, r1,    g1,     b1)
+
+    mymesh.Draw
+
+    mymesh.program.SetUniformMatrix("u_mMatrix", mymatrix.Address)
 
     mymesh.AddVertices(-0.5'f32, 0.1'f32, z, r,     g,     0'f32)
     mymesh.AddVertices( 0.5'f32, 0.1'f32, z, 0'f32, g,     b)

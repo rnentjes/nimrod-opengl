@@ -5,6 +5,7 @@ type
     matrix: array[0..15, float32]
     tmp: array[0..15, float32]
     rz: array[0..15, float32]
+    rx: array[0..15, float32]
 
   PMatrix* = ref TMatrix
 
@@ -38,6 +39,7 @@ proc createMatrix*() : PMatrix =
   SetToIdentity(result.matrix)
   SetToIdentity(result.tmp)
   SetToIdentity(result.rz)
+  SetToIdentity(result.rx)
 
 proc Values*(matrix: PMatrix) : array[0..15, float32] =
   result = matrix.matrix
@@ -134,3 +136,11 @@ proc RotateZ*(matrix: PMatrix, angle: float32) =
   matrix.rz[ 5] = float32(cos(angle))
 
   matrix.Mul(matrix.rz)
+
+proc RotateX*(matrix: PMatrix, angle: float32) =
+  matrix.rx[ 5] = float32(cos(angle))
+  matrix.rx[ 6] = float32(-sin(angle))
+  matrix.rx[ 9] = float32(sin(angle))
+  matrix.rx[10] = float32(cos(angle))
+
+  matrix.Mul(matrix.rx)
