@@ -136,9 +136,9 @@ proc Render() =
 
     mymesh.Begin
 
-    backmatrix.Rotatez(0.005'f32)
-    mymatrix.Rotatez(0.03'f32)
-    mymatrix.Rotatex(0.07'f32)
+    backmatrix.Rotatez(frameDelta * 0.005'f32)
+    mymatrix.Rotatez(frameDelta * 0.003'f32)
+    mymatrix.Rotatex(frameDelta * 0.007'f32)
 
     mymesh.program.SetUniformMatrix("u_pMatrix", pmatrix.Address)
     mymesh.program.SetUniformMatrix("u_mMatrix", backmatrix.Address)
@@ -165,15 +165,16 @@ proc Render() =
     
     mymesh.Done
 
+    glFlush()
     glfwSwapBuffers()
 
 ## --------------------------------------------------------------------------------
  
 proc Run() =
-    #GC_disable()
+    GC_disable()
 
     while running:
-   
+
         if resized:
           resized = false
           
@@ -181,13 +182,14 @@ proc Run() =
 
           #mymatrix.PerspectiveProjection(60.0, float32(windowW) / float32(windowH), 1.0, 25.0)
           pmatrix.PerspectiveProjection(60.0, float32(windowW) / float32(windowH), 1.0, 500.0)
+          #pmatrix.OrthographicProjection(-5'f32, 5'f32, -5'f32, 5'f32, -1'f32, -25'f32)
           #OrthographicProjection(-5'f32, 5'f32, -5'f32, 5'f32, -1'f32, -25'f32, pMatrix);
 
         Update()
  
         Render()
 
-        #GC_step(2000)
+        GC_step(1000)
   
         running = glfwGetKey(GLFW_KEY_ESC) == GLFW_RELEASE and
                   glfwGetWindowParam(GLFW_OPENED) == GL_TRUE

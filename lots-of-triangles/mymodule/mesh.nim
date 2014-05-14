@@ -63,7 +63,8 @@ proc Draw*(mesh: PMesh) =
       cGL_FLOAT, false, cast[GLsizei](mesh.blockLength * sizeof(GL_FLOAT)), cast[pointer](index * sizeof(GL_FLOAT)))
     index += attr.numberOfElements
  
-  glBufferData(GL_ARRAY_BUFFER, cast[GLsizeiptr](sizeof(GL_FLOAT) * int(mesh.count)), addr(mesh.data[0]), GL_DYNAMIC_DRAW)
+  glBufferSubData(GL_ARRAY_BUFFER, 0, cast[GLsizeiptr](sizeof(GL_FLOAT) * int(mesh.count)), addr(mesh.data[0]))
+  #glBufferData(GL_ARRAY_BUFFER, cast[GLsizeiptr](sizeof(GL_FLOAT) * int(mesh.count)), addr(mesh.data[0]), GL_DYNAMIC_DRAW)
 
   glDrawArrays(mesh.drawType, 0, cast[GLsizei](uint(mesh.count / mesh.blockLength)))
 
