@@ -4,10 +4,10 @@ import strutils
 import typeinfo
 import math
 
-import mymodule/perspective
-import mymodule/shaderProgram
-import mymodule/mesh
-import mymodule/matrix
+import opengl-util/perspective
+import opengl-util/shaderProgram
+import opengl-util/mesh
+import opengl-util/matrix
 
 ## -------------------------------------------------------------------------------
  
