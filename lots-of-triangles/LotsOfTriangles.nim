@@ -21,8 +21,8 @@ var
     frameDelta: float = 0.0
 
     window: glfw.Window   
-    windowW: GLint = 1024
-    windowH: GLint = 768
+    windowW: float32 = 1024
+    windowH: float32 = 768
  
     startTime: cdouble
 
@@ -45,10 +45,11 @@ type
 ## -------------------------------------------------------------------------------
 
 proc Resize(window: glfw.Window; width, height: cint) {.cdecl.} = 
-    windowW = width
-    windowH = height
+    windowW = cast[float32](width)
+    windowH = cast[float32](height)
     
     resized = true
+    echo("Resize: ", intToStr(width), ", ", intToStr(height))
 
 ## ---------------------------------------------------------------------
  
@@ -64,7 +65,7 @@ proc Initialize() =
     if glfw.Init() == 0:
         write(stdout, "Could not initialize GLFW! \n")
  
-    glfw.WindowHint(RESIZABLE, GL_FALSE)
+    glfw.WindowHint(RESIZABLE, GL_TRUE)
     #glfw.WindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API)
     glfw.WindowHint(CONTEXT_VERSION_MAJOR, 2)
     glfw.WindowHint(CONTEXT_VERSION_MINOR, 0)
@@ -100,7 +101,7 @@ proc Initialize() =
     mymatrix = createMatrix()        
     backmatrix = createMatrix()        
     pmatrix = CreateMatrix()
-     
+
  
 ## -------------------------------------------------------------------------------
 proc Update() =
@@ -131,22 +132,20 @@ proc Render() =
     var z : float32
 
     z = float32(-2 + sin(currentTime / 3) * 1)
-    var r = float32((1 + sin(currentTime * 0.7)) / 2.0)
-    var g = float32((1 + sin(currentTime * 0.3)) / 2.0)
-    var b = float32((1 + sin(currentTime * 0.5)) / 2.0)
+    var r = float32((1 + sin(currentTime * 2.7)) / 2.0)
+    var g = float32((1 + sin(currentTime * 3.3)) / 2.0)
+    var b = float32((1 + sin(currentTime * 4.5)) / 2.0)
     
-    var r1 = float32((1 + sin(currentTime * 0.3)) / 2.0)
-    var g1 = float32((1 + sin(currentTime * 0.5)) / 2.0)
-    var b1 = float32((1 + sin(currentTime * 0.7)) / 2.0)
+    var r1 = float32((1 + sin(currentTime * 3.3)) / 2.0)
+    var g1 = float32((1 + sin(currentTime * 4.5)) / 2.0)
+    var b1 = float32((1 + sin(currentTime * 2.7)) / 2.0)
 
-    mymesh.Begin
+    backmatrix.Rotatez(frameDelta * 0.05'f32)
+    mymatrix.Rotatez(frameDelta * 3'f32)
+    #mymatrix.Rotatex(frameDelta * 0.7'f32)
 
-    backmatrix.Rotatez(frameDelta * 0.005'f32)
-    mymatrix.Rotatez(frameDelta * 0.003'f32)
-    mymatrix.Rotatex(frameDelta * 0.007'f32)
-
-    mymesh.program.SetUniformMatrix("u_pMatrix", pmatrix.Address)
-    mymesh.program.SetUniformMatrix("u_mMatrix", backmatrix.Address)
+    mymesh.SetUniformMatrix("u_pMatrix", pmatrix)
+    mymesh.SetUniformMatrix("u_mMatrix", backmatrix)
 
     mymesh.AddVertices( -4'f32,  -4'f32,   -2'f32, 1-r1,  1-g1,  1-b1)
     mymesh.AddVertices(  4'f32,  -4'f32,   -2'f32, r1,    g1,     b1)
@@ -158,7 +157,7 @@ proc Render() =
 
     mymesh.Draw
 
-    mymesh.program.SetUniformMatrix("u_mMatrix", mymatrix.Address)
+    mymesh.SetUniformMatrix("u_mMatrix", mymatrix)
 
     mymesh.AddVertices(-0.5'f32, 0.1'f32, z, r,     g,     0'f32)
     mymesh.AddVertices( 0.5'f32, 0.1'f32, z, 0'f32, g,     b)
@@ -168,7 +167,7 @@ proc Render() =
     mymesh.AddVertices( 0.5'f32, -0.1'f32,  z, 0'f32, g,     b)
     mymesh.AddVertices( 0.0'f32, -1'f32,    z, r,     0'f32, b)
     
-    mymesh.Done
+    mymesh.Draw
 
     glFlush()
     glfw.SwapBuffers(window)
@@ -176,7 +175,7 @@ proc Render() =
 ## --------------------------------------------------------------------------------
  
 proc Run() =
-    GC_disable()
+    #GC_disable()
 
     echo("Window: ")
     echo(cast[int64](window))
@@ -185,27 +184,19 @@ proc Run() =
         glfw.PollEvents()
         
         if resized:
-
           resized = false
-          
-          glViewport(0, 0, windowW, windowH)
-
-          #mymatrix.PerspectiveProjection(60.0, float32(windowW) / float32(windowH), 1.0, 25.0)
-          pmatrix.PerspectiveProjection(60.0, float32(windowW) / float32(windowH), 1.0, 500.0)
-          #pmatrix.OrthographicProjection(-5'f32, 5'f32, -5'f32, 5'f32, -1'f32, -25'f32)
-          #OrthographicProjection(-5'f32, 5'f32, -5'f32, 5'f32, -1'f32, -25'f32, pMatrix);
+          glViewport(0, 0, cast[GLsizei](windowW), cast[GLsizei](windowH))
+          pmatrix.PerspectiveProjection(75.0, float32(windowW) / float32(windowH), 1.0, 100.0)
 
         Update()
  
         Render()
 
-        GC_step(1000)
-
-        glfw.SwapBuffers(window)
+        #GC_step(1000)
   
-        running = (glfw.GetKey(window, glfw.KEY_SPACE) != glfw.PRESS) and glfw.windowShouldClose(window) != gl.GL_TRUE
+        running = (glfw.GetKey(window, glfw.KEY_ESCAPE) != glfw.PRESS) and glfw.windowShouldClose(window) != gl.GL_TRUE
 
-        if glfw.GetKey(window, glfw.KEY_SPACE) != glfw.RELEASE:
+        if glfw.GetKey(window, glfw.KEY_ESCAPE) != glfw.RELEASE:
           echo("KEY_STATE: ", intToStr(glfw.GetKey(window, glfw.KEY_SPACE)))
         # and
         #          glfw.GetWindowAttrib(window, glfw.VISIBLE) == GL_TRUE
