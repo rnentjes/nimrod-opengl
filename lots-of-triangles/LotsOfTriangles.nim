@@ -1,5 +1,5 @@
-import glfw
-import opengl
+import glfw3 as glfw
+import opengl as gl
 import strutils
 import typeinfo
 import math
@@ -19,7 +19,8 @@ var
     currentTime: float = 0.0
     frameRate: int = 0
     frameDelta: float = 0.0
-   
+
+    window: glfw.Window   
     windowW: GLint = 1024
     windowH: GLint = 768
  
@@ -35,7 +36,7 @@ var
     
     shader: PShaderProgram
     mymesh: PMesh
- 
+
 type
     ShaderType = enum
         VertexShader,
@@ -43,12 +44,12 @@ type
 
 ## -------------------------------------------------------------------------------
 
-proc Resize(width, height: cint) = 
+proc Resize(window: glfw.Window; width, height: cint) {.cdecl.} = 
     windowW = width
     windowH = height
     
     resized = true
- 
+
 ## ---------------------------------------------------------------------
  
 proc InitializeGL() =
@@ -56,34 +57,38 @@ proc InitializeGL() =
     glClearColor(0.2,0.0,0.2,1.0)
     
 ## -------------------------------------------------------------------------------
- 
+
 proc Initialize() =
-    startTime = glfwGetTime()
+    startTime = glfw.GetTime()
    
-    if glfwInit() == 0:
+    if glfw.Init() == 0:
         write(stdout, "Could not initialize GLFW! \n")
  
-    glfwOpenWindowHint(GLFW_WINDOW_NO_RESIZE, GL_FALSE)
-    #glfwOpenWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API)
-    glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 2)
-    glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 0)
-    glfwOpenWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE)
+    glfw.WindowHint(RESIZABLE, GL_FALSE)
+    #glfw.WindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API)
+    glfw.WindowHint(CONTEXT_VERSION_MAJOR, 2)
+    glfw.WindowHint(CONTEXT_VERSION_MINOR, 0)
+    glfw.WindowHint(OPENGL_DEBUG_CONTEXT, GL_TRUE)
     
-    #glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE)
+    #glfw.OpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE)
  
     # GLFW_WINDOW or GLFW_FULLSCREEN
-    if glfwOpenWindow(cint(windowW), cint(windowH), 0, 0, 0, 0, 0, 0, GLFW_WINDOW) == 0:
-        glfwTerminate()
+    window =  glfw.CreateWindow(cint(windowW), cint(windowH), "TEST", nil, nil)
+
+    echo("Window: ")
+    echo(cast[int64](window))
+
+    glfw.MakeContextCurrent(window)
  
-    glfwSetWindowSizeCallback(Resize)
+    discard glfw.SetWindowSizeCallback(window, Resize)
  
-    glfwSwapInterval(1)
+    glfw.SwapInterval(1)
  
-    opengl.loadExtensions()
+    gl.loadExtensions()
  
     InitializeGL()
  
-    lastTime = glfwGetTime()
+    lastTime = glfw.GetTime()
     lastFPSTime = lastTime
 
     shader = createShaderProgram("shaders/shader")
@@ -100,7 +105,7 @@ proc Initialize() =
 ## -------------------------------------------------------------------------------
 proc Update() =
    
-    currentTime = glfwGetTime()
+    currentTime = glfw.GetTime()
  
     frameDelta = currentTime - lastTime
  
@@ -121,7 +126,7 @@ proc Update() =
  
 proc Render() =
    
-    glClear(GL_COLOR_BUFFER_BIT)
+    gl.glClear(GL_COLOR_BUFFER_BIT)
 
     var z : float32
 
@@ -166,16 +171,21 @@ proc Render() =
     mymesh.Done
 
     glFlush()
-    glfwSwapBuffers()
+    glfw.SwapBuffers(window)
 
 ## --------------------------------------------------------------------------------
  
 proc Run() =
     GC_disable()
 
-    while running:
+    echo("Window: ")
+    echo(cast[int64](window))
 
+    while running:
+        glfw.PollEvents()
+        
         if resized:
+
           resized = false
           
           glViewport(0, 0, windowW, windowH)
@@ -190,9 +200,15 @@ proc Run() =
         Render()
 
         GC_step(1000)
+
+        glfw.SwapBuffers(window)
   
-        running = glfwGetKey(GLFW_KEY_ESC) == GLFW_RELEASE and
-                  glfwGetWindowParam(GLFW_OPENED) == GL_TRUE
+        running = (glfw.GetKey(window, glfw.KEY_SPACE) != glfw.PRESS) and glfw.windowShouldClose(window) != gl.GL_TRUE
+
+        if glfw.GetKey(window, glfw.KEY_SPACE) != glfw.RELEASE:
+          echo("KEY_STATE: ", intToStr(glfw.GetKey(window, glfw.KEY_SPACE)))
+        # and
+        #          glfw.GetWindowAttrib(window, glfw.VISIBLE) == GL_TRUE
 
  
 ## ==============================================================================
@@ -201,4 +217,4 @@ Initialize()
  
 Run()
  
-glfwTerminate()
+Terminate()
