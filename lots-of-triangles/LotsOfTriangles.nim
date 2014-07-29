@@ -55,13 +55,9 @@ proc Resize(window: glfw.Window; width, height: cint) {.cdecl.} =
  
 proc InitializeGL() =
 
-    gl.glClearColor(0.2,0.0,0.2,1.0)
+    glClearColor(0.2,0.0,0.2,1.0)
     
 ## -------------------------------------------------------------------------------
-
-proc mymeshsetter(program: PShaderProgram) =
-  program.SetUniformMatrix("u_pMatrix", pmatrix.Address)
-  program.SetUniformMatrix("u_mMatrix", backmatrix.Address)
 
 proc Initialize() =
     startTime = glfw.GetTime()
@@ -78,9 +74,14 @@ proc Initialize() =
     #glfw.OpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE)
  
     # GLFW_WINDOW or GLFW_FULLSCREEN
-    window =  glfw.CreateWindow(1024, 768, "TEST", nil, nil)
-    
+    window =  glfw.CreateWindow(cint(windowW), cint(windowH), "TEST", nil, nil)
+
+    echo("Window: ")
+    echo(cast[int64](window))
+
     glfw.MakeContextCurrent(window)
+ 
+    discard glfw.SetWindowSizeCallback(window, Resize)
  
     glfw.SwapInterval(1)
  
@@ -93,15 +94,13 @@ proc Initialize() =
 
     shader = createShaderProgram("shaders/shader")
 
-    mymesh = createMesh(shader, mymeshsetter, GL_TRIANGLES,
+    mymesh = createMesh(shader, GL_TRIANGLES,
         @[TMeshAttr(attribute: "a_position", numberOfElements: 3),
           TMeshAttr(attribute: "a_color", numberOfElements: 3)] ) 
 
     mymatrix = createMatrix()        
     backmatrix = createMatrix()        
     pmatrix = CreateMatrix()
- 
-    discard glfw.SetWindowSizeCallback(window, Resize)
 
  
 ## -------------------------------------------------------------------------------
@@ -132,7 +131,7 @@ proc Render() =
 
     var z : float32
 
-    z = float32(-3 + sin(currentTime / 3) * 1)
+    z = float32(-2 + sin(currentTime / 3) * 1)
     var r = float32((1 + sin(currentTime * 2.7)) / 2.0)
     var g = float32((1 + sin(currentTime * 3.3)) / 2.0)
     var b = float32((1 + sin(currentTime * 4.5)) / 2.0)
@@ -145,8 +144,8 @@ proc Render() =
     mymatrix.Rotatez(frameDelta * 3'f32)
     #mymatrix.Rotatex(frameDelta * 0.7'f32)
 
-    #mymesh.SetUniformMatrix("u_pMatrix", pmatrix)
-    #mymesh.SetUniformMatrix("u_mMatrix", backmatrix)
+    mymesh.SetUniformMatrix("u_pMatrix", pmatrix)
+    mymesh.SetUniformMatrix("u_mMatrix", backmatrix)
 
     mymesh.AddVertices( -4'f32,  -4'f32,   -2'f32, 1-r1,  1-g1,  1-b1)
     mymesh.AddVertices(  4'f32,  -4'f32,   -2'f32, r1,    g1,     b1)
@@ -158,7 +157,7 @@ proc Render() =
 
     mymesh.Draw
 
-    #mymesh.SetUniformMatrix("u_mMatrix", mymatrix)
+    mymesh.SetUniformMatrix("u_mMatrix", mymatrix)
 
     mymesh.AddVertices(-0.5'f32, 0.1'f32, z, r,     g,     0'f32)
     mymesh.AddVertices( 0.5'f32, 0.1'f32, z, 0'f32, g,     b)
@@ -170,7 +169,7 @@ proc Render() =
     
     mymesh.Draw
 
-    # gl.glFlush()
+    glFlush()
     glfw.SwapBuffers(window)
 
 ## --------------------------------------------------------------------------------
@@ -178,16 +177,16 @@ proc Render() =
 proc Run() =
     #GC_disable()
 
+    echo("Window: ")
+    echo(cast[int64](window))
+
     while running:
         glfw.PollEvents()
         
         if resized:
-           resized = false
-
-           glViewport(0, 0, cast[GLsizei](windowW), cast[GLsizei](windowH))
-           pmatrix.PerspectiveProjection(75.0, windowW / windowH, 1.0, 100.0)
-
-           echo("aspect: ", windowW / windowH)
+          resized = false
+          glViewport(0, 0, cast[GLsizei](windowW), cast[GLsizei](windowH))
+          pmatrix.PerspectiveProjection(75.0, float32(windowW) / float32(windowH), 1.0, 100.0)
 
         Update()
  
