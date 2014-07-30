@@ -13,9 +13,9 @@ type
     blockLength: GLsizei
     vertex_vbo: GLuint
     program*: PShaderProgram
+    setter: UniformSetter
     attrs: seq[TMeshAttr]
     attrLocations: TTable[string, GLuint]
-    uniformMatrixes: TTable[string, PMatrix]
 
   PMesh* = ref TMesh
 
@@ -26,16 +26,18 @@ type
 
   PMeshAttr* = ref TMeshAttr
 
-proc createMesh*(program: PShaderProgram, drawType: GLenum, attribs: seq[TMeshAttr]) : PMesh =
+  UniformSetter* = proc (program: PShaderProgram)
+
+proc createMesh*(program: PShaderProgram, setter: UniformSetter, drawType: GLenum, attribs: seq[TMeshAttr]) : PMesh =
   result = new(TMesh)
 
   result.drawType = drawType
   result.program = program
+  result.setter = setter
   result.attrs = attribs
   result.count = 0
   result.blockLength = 0
   result.attrLocations = initTable[string, GLuint]()
-  result.uniformMatrixes = initTable[string, PMatrix]()
 
   for attr in attribs:
     result.attrLocations[attr.attribute] = program.GetAttribLocation(attr.attribute)
@@ -44,9 +46,6 @@ proc createMesh*(program: PShaderProgram, drawType: GLenum, attribs: seq[TMeshAt
   glGenBuffers(1, addr(result.vertex_vbo))
   glBindBuffer(GL_ARRAY_BUFFER, result.vertex_vbo)
   glBufferData(GL_ARRAY_BUFFER, sizeof(GL_FLOAT) * result.data.len, addr(result.data[0]), GL_DYNAMIC_DRAW)
-
-proc SetUniformMatrix*(mesh: PMesh, name: string, matrix: PMatrix) =
-  mesh.uniformMatrixes[name] = matrix
 
 proc AddVertices*(mesh: PMesh, verts: varargs[float32]) =
   assert verts.len == mesh.blockLength
@@ -62,9 +61,7 @@ proc Reset*(mesh: PMesh) =
 proc Draw*(mesh: PMesh) =
   mesh.program.Begin()
 
-  # set uniforms
-  for key in mesh.uniformMatrixes.keys:
-    mesh.program.SetUniformMatrix(key, mesh.uniformMatrixes[key].Address)
+  mesh.setter(mesh.program)
 
   glBindBuffer(GL_ARRAY_BUFFER, mesh.vertex_vbo)
 
@@ -83,6 +80,7 @@ proc Draw*(mesh: PMesh) =
     glDisableVertexAttribArray(mesh.attrLocations[attr.attribute])
 
   glBindBuffer(GL_ARRAY_BUFFER, 0)
+
   mesh.program.Done()
   mesh.Reset
 
