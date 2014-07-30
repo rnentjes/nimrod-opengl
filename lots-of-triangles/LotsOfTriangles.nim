@@ -98,7 +98,7 @@ proc Initialize() =
 
     shader = createShaderProgram("shaders/shader")
 
-    mymesh = createMesh(shader, mymeshsetter,GL_TRIANGLES,
+    mymesh = createMesh(shader, mymeshsetter, GL_TRIANGLES,
         @[TMeshAttr(attribute: "a_position", numberOfElements: 3),
           TMeshAttr(attribute: "a_color", numberOfElements: 3)] ) 
 
@@ -190,7 +190,8 @@ proc Run() =
         if resized:
           resized = false
           glViewport(0, 0, cast[GLsizei](windowW), cast[GLsizei](windowH))
-          pmatrix.PerspectiveProjection(75.0, float32(windowW) / float32(windowH), 1.0, 100.0)
+          pmatrix.PerspectiveProjection(75.0, windowW / windowH, 1.0, 100.0)
+          echo("aspect: ", windowW / windowH)
 
         Update()
  
