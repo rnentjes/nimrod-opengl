@@ -131,7 +131,7 @@ proc Render() =
 
     var z : float32
 
-    z = float32(-2 + sin(currentTime / 3) * 1)
+    z = float32(-2 + sin(currentTime / 3) * 3)
     var r = float32((1 + sin(currentTime * 2.7)) / 2.0)
     var g = float32((1 + sin(currentTime * 3.3)) / 2.0)
     var b = float32((1 + sin(currentTime * 4.5)) / 2.0)
