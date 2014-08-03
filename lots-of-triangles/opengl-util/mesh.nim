@@ -47,14 +47,6 @@ proc createMesh*(program: PShaderProgram, setter: UniformSetter, drawType: GLenu
   glBindBuffer(GL_ARRAY_BUFFER, result.vertex_vbo)
   glBufferData(GL_ARRAY_BUFFER, sizeof(GL_FLOAT) * result.data.len, addr(result.data[0]), GL_DYNAMIC_DRAW)
 
-proc AddVertices*(mesh: PMesh, verts: varargs[float32]) =
-  assert verts.len == mesh.blockLength
-  #assert (verts.len + mesh.count) < mesh.len
-
-  for v in verts:
-    mesh.data[mesh.count] = v
-    mesh.count = mesh.count + 1
-
 proc Reset*(mesh: PMesh) =
   mesh.count = 0
 
@@ -83,4 +75,14 @@ proc Draw*(mesh: PMesh) =
 
   mesh.program.Done()
   mesh.Reset
+
+proc AddVertices*(mesh: PMesh, verts: varargs[float32]) =
+  assert verts.len == mesh.blockLength
+  #assert (verts.len + mesh.count) < mesh.len
+  if (mesh.count + verts.len > 4000):
+    mesh.Draw
+
+  for v in verts:
+    mesh.data[mesh.count] = v
+    mesh.count = mesh.count + 1
 

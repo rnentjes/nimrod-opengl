@@ -11,6 +11,17 @@ import opengl-util/matrix
 
 ## -------------------------------------------------------------------------------
  
+type
+    TTriangle = object
+      x: float32
+      y: float32
+      z: float32
+      size: float32
+      angle: float32
+      r: float32
+      g: float32
+      b: float32
+
 var
     running : bool = true
     frameCount: int = 0
@@ -37,12 +48,19 @@ var
     shader: PShaderProgram
     mymesh: PMesh
 
+    triangles: array[0..9999, TTriangle]
+
 type
     ShaderType = enum
         VertexShader,
         FragmentShader
 
 ## -------------------------------------------------------------------------------
+
+proc draw(triangle: TTriangle, mesh: PMesh) =
+  mesh.AddVertices( triangle.x - triangle.size, triangle.y,  -2'f32, triangle.r, triangle.g, triangle.b)
+  mesh.AddVertices( triangle.x + triangle.size / 0.5'f32, triangle.y + triangle.size,  -2'f32, triangle.r, triangle.g, triangle.b)
+  mesh.AddVertices( triangle.x + triangle.size, triangle.y,  -2'f32, triangle.r, triangle.g, triangle.b)
 
 proc Resize(window: glfw.Window; width, height: cint) {.cdecl.} = 
     windowW = float32(width)
@@ -54,7 +72,6 @@ proc Resize(window: glfw.Window; width, height: cint) {.cdecl.} =
 ## ---------------------------------------------------------------------
 
 proc InitializeGL() =
-
     glClearColor(0.2,0.0,0.2,1.0)
 
 ## -------------------------------------------------------------------------------
@@ -105,10 +122,20 @@ proc Initialize() =
     pmatrix = CreateMatrix()
 
     discard glfw.SetWindowSizeCallback(window, Resize)
+
+    randomize()
+    for i in countup(0, len(triangles)-1):
+      triangles[i].x = random(2'f32) - 1'f32
+      triangles[i].y = random(2'f32) - 1'f32
+      triangles[i].z = random(2'f32) - 1'f32
+      triangles[i].size = 0.1'f32      
+      triangles[i].angle = random(2'f32 * PI)
+      triangles[i].r = random(0.25'f32) + 0.25'f32
+      triangles[i].g = random(0.25'f32) + 0.25'f32
+      triangles[i].b = random(0.25'f32) + 0.25'f32
  
 ## -------------------------------------------------------------------------------
 proc Update() =
-   
     currentTime = glfw.GetTime()
  
     frameDelta = currentTime - lastTime
@@ -155,14 +182,8 @@ proc Render() =
     mymesh.AddVertices( -4'f32,  -4'f32,  -2'f32,  1-r1,  1-g1,   1-b1)
     mymesh.AddVertices( -4'f32,   4'f32,  -2'f32,  r1,    g1,     b1)
 
-    for i in countup(1, 10):
-      mymesh.AddVertices(-0.5'f32, 0.1'f32,   z,  r,     g,     0'f32)
-      mymesh.AddVertices( 0.5'f32, 0.1'f32,   z,  0'f32, g,     b)
-      mymesh.AddVertices( 0.0'f32, 1'f32,   z,  r,     0'f32, b)
-
-      mymesh.AddVertices(-0.5'f32, -0.1'f32,  z,  r,     g,     0'f32)
-      mymesh.AddVertices( 0.5'f32, -0.1'f32,  z,  0'f32, g,     b)
-      mymesh.AddVertices( 0.0'f32, -1'f32,  z,  r,     0'f32, b)
+    for t in triangles:
+      t.draw(mymesh)
     
     mymesh.Draw
 
