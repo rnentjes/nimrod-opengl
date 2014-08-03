@@ -21,8 +21,8 @@ var
     frameDelta: float = 0.0
 
     window: glfw.Window   
-    windowW: float32 = 1024
-    windowH: float32 = 768
+    windowW: float32 = 1024'f32
+    windowH: float32 = 768'f32
  
     startTime: cdouble
 
@@ -55,7 +55,7 @@ proc Resize(window: glfw.Window; width, height: cint) {.cdecl.} =
  
 proc InitializeGL() =
 
-    glClearColor(0.2,0.0,0.2,1.0)
+    gl.glClearColor(0.2,0.0,0.2,1.0)
     
 ## -------------------------------------------------------------------------------
 
@@ -78,14 +78,9 @@ proc Initialize() =
     #glfw.OpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE)
  
     # GLFW_WINDOW or GLFW_FULLSCREEN
-    window =  glfw.CreateWindow(cint(windowW), cint(windowH), "TEST", nil, nil)
-
-    echo("Window: ")
-    echo(cast[int64](window))
-
+    window =  glfw.CreateWindow(1024, 768, "TEST", nil, nil)
+    
     glfw.MakeContextCurrent(window)
- 
-    discard glfw.SetWindowSizeCallback(window, Resize)
  
     glfw.SwapInterval(1)
  
@@ -105,6 +100,8 @@ proc Initialize() =
     mymatrix = createMatrix()        
     backmatrix = createMatrix()        
     pmatrix = CreateMatrix()
+ 
+    discard glfw.SetWindowSizeCallback(window, Resize)
 
  
 ## -------------------------------------------------------------------------------
@@ -173,7 +170,7 @@ proc Render() =
     
     mymesh.Draw
 
-    glFlush()
+    # gl.glFlush()
     glfw.SwapBuffers(window)
 
 ## --------------------------------------------------------------------------------
@@ -181,17 +178,16 @@ proc Render() =
 proc Run() =
     #GC_disable()
 
-    echo("Window: ")
-    echo(cast[int64](window))
-
     while running:
         glfw.PollEvents()
         
         if resized:
-          resized = false
-          glViewport(0, 0, cast[GLsizei](windowW), cast[GLsizei](windowH))
-          pmatrix.PerspectiveProjection(75.0, windowW / windowH, 1.0, 100.0)
-          echo("aspect: ", windowW / windowH)
+           resized = false
+
+           glViewport(0, 0, cast[GLsizei](windowW), cast[GLsizei](windowH))
+           pmatrix.PerspectiveProjection(75.0, windowW / windowH, 1.0, 100.0)
+
+           echo("aspect: ", windowW / windowH)
 
         Update()
  
