@@ -33,7 +33,7 @@ var
     mymatrix: PMatrix                                   
 
     resized: bool = true
-    
+
     shader: PShaderProgram
     mymesh: PMesh
 
@@ -47,16 +47,16 @@ type
 proc Resize(window: glfw.Window; width, height: cint) {.cdecl.} = 
     windowW = float32(width)
     windowH = float32(height)
-    
+
     resized = true
     echo("Resize: ", intToStr(width), ", ", intToStr(height))
 
 ## ---------------------------------------------------------------------
- 
+
 proc InitializeGL() =
 
     glClearColor(0.2,0.0,0.2,1.0)
-    
+
 ## -------------------------------------------------------------------------------
 
 proc mymeshsetter(program: PShaderProgram) =
@@ -147,23 +147,22 @@ proc Render() =
     mymatrix.Rotatez(frameDelta * 3'f32)
     #mymatrix.Rotatex(frameDelta * 0.7'f32)
 
-    mymesh.AddVertices( -1'f32,  -1'f32,   -5'f32, 1-r1,  1-g1,  1-b1)
-    mymesh.AddVertices(  1'f32,  -1'f32,   -5'f32, r1,    g1,     b1)
-    mymesh.AddVertices(  1'f32,   1'f32,   -5'f32, g1,    b1,     r1)
+    mymesh.AddVertices( -4'f32,  -4'f32,  -2'f32,  1-r1,  1-g1,   1-b1)
+    mymesh.AddVertices(  4'f32,  -4'f32,  -2'f32,  r1,    g1,     b1)
+    mymesh.AddVertices(  4'f32,   4'f32,  -2'f32,  g1,    b1,     r1)
 
-    mymesh.AddVertices(  4'f32,   4'f32,   -2'f32, g1,    b1,     r1)
-    mymesh.AddVertices( -4'f32,  -4'f32,   -2'f32, 1-r1,  1-g1,  1-b1)
-    mymesh.AddVertices( -4'f32,   4'f32,   -2'f32, r1,    g1,     b1)
+    mymesh.AddVertices(  4'f32,   4'f32,  -2'f32,  g1,    b1,     r1)
+    mymesh.AddVertices( -4'f32,  -4'f32,  -2'f32,  1-r1,  1-g1,   1-b1)
+    mymesh.AddVertices( -4'f32,   4'f32,  -2'f32,  r1,    g1,     b1)
 
-    #mymesh.Draw
+    for i in countup(1, 10):
+      mymesh.AddVertices(-0.5'f32, 0.1'f32,   z,  r,     g,     0'f32)
+      mymesh.AddVertices( 0.5'f32, 0.1'f32,   z,  0'f32, g,     b)
+      mymesh.AddVertices( 0.0'f32, 1'f32,   z,  r,     0'f32, b)
 
-    mymesh.AddVertices(-0.5'f32, 0'f32, z, r,     g,     0'f32)
-    mymesh.AddVertices( 0.5'f32, 0'f32, z, 0'f32, g,     b)
-    mymesh.AddVertices( 0.0'f32, 1'f32,   z, r,     0'f32, b)
-
-    mymesh.AddVertices(-0.5'f32, -0'f32,  z, r,     g,     0'f32)
-    mymesh.AddVertices( 0.5'f32, -0'f32,  z, 0'f32, g,     b)
-    mymesh.AddVertices( 0.0'f32, -1'f32,    z, r,     0'f32, b)
+      mymesh.AddVertices(-0.5'f32, -0.1'f32,  z,  r,     g,     0'f32)
+      mymesh.AddVertices( 0.5'f32, -0.1'f32,  z,  0'f32, g,     b)
+      mymesh.AddVertices( 0.0'f32, -1'f32,  z,  r,     0'f32, b)
     
     mymesh.Draw
 
@@ -187,7 +186,7 @@ proc Run() =
           resized = false
 
           glViewport(0, 0, cast[GLint](int(windowW)), cast[GLint](int(windowH)))
-          pmatrix.PerspectiveProjection(75.0'f32, windowW / windowH, 0.1'f32, 25.0'f32)
+          pmatrix.PerspectiveProjection(75.0'f32, windowW / windowH, 0.1'f32, 30.0'f32)
 
         Update()
  
