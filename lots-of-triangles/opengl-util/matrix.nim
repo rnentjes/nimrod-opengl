@@ -10,7 +10,7 @@ type
   PMatrix* = ref TMatrix
 
 proc DegToRad(deg: float32) :float32 =
-    result = float32((deg / 180.0'f32) * PI)
+    result = float32((deg / 180'f32) * math.PI)
 
 proc SetToIdentity(matrix: var array[0..15, float32]) =
   matrix[ 0] = 1'f32
@@ -73,6 +73,9 @@ proc PerspectiveProjection*(matrix: PMatrix, angle: float32, imageAspectRatio: f
     var 
         r = DegToRad(angle)
         f = float32(1.0'f32 / tan(r / 2.0'f32))
+
+    echo("Rad: ", r)
+    echo("Aspect: ", imageAspectRatio)
         
     matrix.matrix[0] = f / imageAspectRatio
     matrix.matrix[1] = 0.0'f32

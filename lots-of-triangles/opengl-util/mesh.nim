@@ -12,7 +12,7 @@ type
     count: GLsizei
     blockLength: GLsizei
     vertex_vbo: GLuint
-    program*: PShaderProgram
+    program: PShaderProgram
     setter: UniformSetter
     attrs: seq[TMeshAttr]
     attrLocations: TTable[string, GLuint]

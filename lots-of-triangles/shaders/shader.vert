@@ -18,6 +18,6 @@ mat4 translate(float x, float y, float z) {
 }
 
 void main() {
-    gl_Position =  u_mMatrix * u_pMatrix * a_position;
+    gl_Position =  u_pMatrix * u_mMatrix * a_position;
     v_color = a_color;
 }
